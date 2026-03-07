@@ -1,5 +1,5 @@
-#ifndef BUS_INIT_H
-#define BUS_INIT_H
+#ifndef PSX_BUS_INIT_H
+#define PSX_BUS_INIT_H
 
 #include "p9.h"
 
@@ -36,6 +36,8 @@ typedef struct psx_timer_t psx_timer_t;
 typedef struct psx_cdrom_t psx_cdrom_t;
 typedef struct psx_pad_t psx_pad_t;
 typedef struct psx_mdec_t psx_mdec_t;
+
+typedef struct psx_bus_t psx_bus_t;
 
 struct psx_bus_t {
     struct psx_bios_t* bios;

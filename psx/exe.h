@@ -1,5 +1,5 @@
-#ifndef EXE_H
-#define EXE_H
+#ifndef PSX_EXE_H
+#define PSX_EXE_H
 
 #include "p9.h"
 

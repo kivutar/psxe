@@ -14,57 +14,63 @@
 #include "dev/ic.h"
 #include "dev/scratchpad.h"
 #include "dev/gpu.h"
+#include "dev/spu.h"
+#include "dev/timer.h"
+#include "dev/pad.h"
+#include "dev/mdec.h"
 #include "log.h"
 
-/*
- * 6c struggles with the full SPU header in this TU; bus only needs
- * the MMIO prefix fields and read/write entry points.
- */
-struct psx_spu_t {
-    uint32_t bus_delay;
-    uint32_t io_base, io_size;
-};
-uint32_t psx_spu_read32(struct psx_spu_t*, uint32_t);
-uint16_t psx_spu_read16(struct psx_spu_t*, uint32_t);
-uint8_t psx_spu_read8(struct psx_spu_t*, uint32_t);
-void psx_spu_write32(struct psx_spu_t*, uint32_t, uint32_t);
-void psx_spu_write16(struct psx_spu_t*, uint32_t, uint16_t);
-void psx_spu_write8(struct psx_spu_t*, uint32_t, uint8_t);
-
-struct psx_timer_t {
-    uint32_t bus_delay;
-    uint32_t io_base, io_size;
-};
-uint32_t psx_timer_read32(struct psx_timer_t*, uint32_t);
-uint16_t psx_timer_read16(struct psx_timer_t*, uint32_t);
-uint8_t psx_timer_read8(struct psx_timer_t*, uint32_t);
-void psx_timer_write32(struct psx_timer_t*, uint32_t, uint32_t);
-void psx_timer_write16(struct psx_timer_t*, uint32_t, uint16_t);
-void psx_timer_write8(struct psx_timer_t*, uint32_t, uint8_t);
-
-struct psx_pad_t {
-    uint32_t bus_delay;
-    uint32_t io_base, io_size;
-};
-uint32_t psx_pad_read32(struct psx_pad_t*, uint32_t);
-uint16_t psx_pad_read16(struct psx_pad_t*, uint32_t);
-uint8_t psx_pad_read8(struct psx_pad_t*, uint32_t);
-void psx_pad_write32(struct psx_pad_t*, uint32_t, uint32_t);
-void psx_pad_write16(struct psx_pad_t*, uint32_t, uint16_t);
-void psx_pad_write8(struct psx_pad_t*, uint32_t, uint8_t);
-
-struct psx_mdec_t {
-    uint32_t bus_delay;
-    uint32_t io_base, io_size;
-};
-uint32_t psx_mdec_read32(struct psx_mdec_t*, uint32_t);
-uint16_t psx_mdec_read16(struct psx_mdec_t*, uint32_t);
-uint8_t psx_mdec_read8(struct psx_mdec_t*, uint32_t);
-void psx_mdec_write32(struct psx_mdec_t*, uint32_t, uint32_t);
-void psx_mdec_write16(struct psx_mdec_t*, uint32_t, uint16_t);
-void psx_mdec_write8(struct psx_mdec_t*, uint32_t, uint8_t);
+/* Keep explicit MMIO entrypoint declarations for 6c in this TU. */
+uint32_t psx_spu_read32(psx_spu_t*, uint32_t);
+uint16_t psx_spu_read16(psx_spu_t*, uint32_t);
+uint8_t psx_spu_read8(psx_spu_t*, uint32_t);
+void psx_spu_write32(psx_spu_t*, uint32_t, uint32_t);
+void psx_spu_write16(psx_spu_t*, uint32_t, uint16_t);
+void psx_spu_write8(psx_spu_t*, uint32_t, uint8_t);
+uint32_t psx_timer_read32(psx_timer_t*, uint32_t);
+uint16_t psx_timer_read16(psx_timer_t*, uint32_t);
+uint8_t psx_timer_read8(psx_timer_t*, uint32_t);
+void psx_timer_write32(psx_timer_t*, uint32_t, uint32_t);
+void psx_timer_write16(psx_timer_t*, uint32_t, uint16_t);
+void psx_timer_write8(psx_timer_t*, uint32_t, uint8_t);
+uint32_t psx_pad_read32(psx_pad_t*, uint32_t);
+uint16_t psx_pad_read16(psx_pad_t*, uint32_t);
+uint8_t psx_pad_read8(psx_pad_t*, uint32_t);
+void psx_pad_write32(psx_pad_t*, uint32_t, uint32_t);
+void psx_pad_write16(psx_pad_t*, uint32_t, uint16_t);
+void psx_pad_write8(psx_pad_t*, uint32_t, uint8_t);
+uint32_t psx_mdec_read32(psx_mdec_t*, uint32_t);
+uint16_t psx_mdec_read16(psx_mdec_t*, uint32_t);
+uint8_t psx_mdec_read8(psx_mdec_t*, uint32_t);
+void psx_mdec_write32(psx_mdec_t*, uint32_t, uint32_t);
+void psx_mdec_write16(psx_mdec_t*, uint32_t, uint16_t);
+void psx_mdec_write8(psx_mdec_t*, uint32_t, uint8_t);
 
 #define RANGE(v, s, e) ((v >= s) && (v < e))
+
+typedef struct psx_bus_iomap_t {
+    uint32_t bus_delay;
+    uint32_t io_base, io_size;
+} psx_bus_iomap_t;
+
+static int
+bus_probe(void *dev, uint32_t addr, uint32_t *off, uint32_t *cyc)
+{
+    psx_bus_iomap_t *h;
+
+    if (dev == nil)
+        return 0;
+
+    h = (psx_bus_iomap_t*)dev;
+
+    if (!RANGE(addr, h->io_base, (h->io_base + h->io_size)))
+        return 0;
+
+    *off = addr - h->io_base;
+    *cyc = h->bus_delay;
+
+    return 1;
+}
 
 const uint32_t g_psx_bus_region_mask_table[] = {
     0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff,
@@ -84,17 +90,21 @@ void psx_bus_destroy(psx_bus_t* bus) {
     free(bus);
 }
 
-#define HANDLE_READ_OP(dev, fn) \
-    if (RANGE(addr, bus->dev->io_base, (bus->dev->io_base + bus->dev->io_size))) { \
-        bus->access_cycles = bus->dev->bus_delay; \
-        return fn(bus->dev, addr - bus->dev->io_base); \
-    }
-#define HANDLE_WRITE_OP(dev, fn) \
-    if (RANGE(addr, bus->dev->io_base, (bus->dev->io_base + bus->dev->io_size))) { \
-        bus->access_cycles = bus->dev->bus_delay; \
-        fn(bus->dev, addr - bus->dev->io_base, value); \
+#define HANDLE_READ_OP(dev, fn) do { \
+    uint32_t off, cyc; \
+    if (bus_probe(bus->dev, addr, &off, &cyc)) { \
+        bus->access_cycles = cyc; \
+        return fn(bus->dev, off); \
+    } \
+} while (0)
+#define HANDLE_WRITE_OP(dev, fn) do { \
+    uint32_t off, cyc; \
+    if (bus_probe(bus->dev, addr, &off, &cyc)) { \
+        bus->access_cycles = cyc; \
+        fn(bus->dev, off, value); \
         return; \
-    }
+    } \
+} while (0)
 
 uint32_t psx_bus_read32(psx_bus_t* bus, uint32_t addr) {
     uint32_t vaddr = addr;

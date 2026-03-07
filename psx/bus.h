@@ -1,11 +1,8 @@
-#ifndef BUS_H
-#define BUS_H
+#ifndef PSX_BUS_H
+#define PSX_BUS_H
 
 #include "p9.h"
-
-struct psx_bus_t;
-
-typedef struct psx_bus_t psx_bus_t;
+#include "bus_init.h"
 
 psx_bus_t* psx_bus_create(void);
 void psx_bus_init(psx_bus_t*);

@@ -1,4 +1,5 @@
 #include "psx.h"
+#include "dat.h"
 #include "dev/bios.h"
 #include "dev/ram.h"
 #include "dev/dma.h"
@@ -15,15 +16,6 @@
 #include "dev/cdrom/cdrom.h"
 #include "dev/pad.h"
 #include "dev/mdec.h"
-
-/* Keep explicit prototypes for 6c in this TU. */
-psx_bios_t* psx_bios_create(void);
-void psx_bios_init(psx_bios_t*);
-int psx_bios_load(psx_bios_t*, const char*);
-void psx_bios_destroy(psx_bios_t*);
-psx_spu_t* psx_spu_create(void);
-void psx_spu_init(psx_spu_t*, psx_ic_t*);
-void psx_spu_destroy(psx_spu_t*);
 
 psx_t* psx_create(void) {
     return (psx_t*)malloc(sizeof(psx_t));

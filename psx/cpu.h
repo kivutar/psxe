@@ -1,5 +1,5 @@
-#ifndef CPU_H
-#define CPU_H
+#ifndef PSX_CPU_H
+#define PSX_CPU_H
 
 #include "p9.h"
 

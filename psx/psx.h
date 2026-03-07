@@ -1,5 +1,5 @@
-#ifndef PSX_H
-#define PSX_H
+#ifndef PSX_PSX_H
+#define PSX_PSX_H
 
 #include "cpu.h"
 #include "log.h"
@@ -14,7 +14,7 @@
 #define PSXE_COMMIT STR(REP_COMMIT_HASH)
 #define PSXE_BUILD_OS STR(OS_INFO)
 
-typedef struct {
+typedef struct psx_t {
     psx_bios_t* bios;
     psx_ram_t* ram;
     psx_dma_t* dma;
