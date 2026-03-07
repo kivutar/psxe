@@ -1,14 +1,14 @@
-#ifndef DMA_H
-#define DMA_H
+#ifndef PSX_DEV_DMA_H
+#define PSX_DEV_DMA_H
 
-#include <stdint.h>
+#include "p9.h"
 
 #define PSX_DMAR_BEGIN 0x1f801080
 #define PSX_DMAR_SIZE  0x80
 #define PSX_DMAR_END   0x1f8010ff
 
-#include "../bus.h"
-#include "ic.h"
+#include "bus.h"
+#include "dev/ic.h"
 
 typedef struct {
     uint32_t madr;
@@ -16,7 +16,7 @@ typedef struct {
     uint32_t chcr;
 } dma_channel_t;
 
-typedef struct {
+struct psx_dma_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
@@ -40,7 +40,9 @@ typedef struct {
 
     uint32_t dpcr;
     uint32_t dicr;
-} psx_dma_t;
+};
+
+typedef struct psx_dma_t psx_dma_t;
 
 psx_dma_t* psx_dma_create(void);
 void psx_dma_init(psx_dma_t*, psx_bus_t*, psx_ic_t*);

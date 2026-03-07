@@ -1,9 +1,7 @@
 #ifndef EXE_H
 #define EXE_H
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "p9.h"
 
 #include "cpu.h"
 #include "bus_init.h"

@@ -1,8 +1,18 @@
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
-#include "disc.h"
-#include "cue.h"
+#include "dev/cdrom/disc.h"
+
+/*
+ * Keep cue API usage opaque in this TU; this avoids typedef visibility
+ * issues with 6c while preserving link-time behavior.
+ */
+void* cue_create(void);
+void cue_init(void*);
+void cue_init_disc(void*, psx_disc_t*);
+int cue_parse(void*, const char*);
+int cue_load(void*, int);
+
+#define CUE_LD_FILE 1
 
 #define MSF_TO_LBA(m, s, f) ((m * 4500) + (s * 75) + f)
 
@@ -68,9 +78,11 @@ int psx_disc_open(psx_disc_t* disc, const char* path) {
 }
 
 int psx_disc_open_as(psx_disc_t* disc, const char* path, int type) {
+    void* cue;
+
     switch (type) {
         case CD_EXT_CUE: {
-            cue_t* cue = cue_create();
+            cue = cue_create();
 
             cue_init(cue);
             cue_init_disc(cue, disc);
@@ -78,7 +90,7 @@ int psx_disc_open_as(psx_disc_t* disc, const char* path, int type) {
             if (cue_parse(cue, path))
                 return CDT_ERROR;
 
-            if (cue_load(cue, LD_FILE))
+            if (cue_load(cue, CUE_LD_FILE))
                 return CDT_ERROR;
         } break;
     }

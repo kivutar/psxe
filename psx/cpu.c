@@ -2,8 +2,7 @@
 #include "bus.h"
 #include "log.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
 #include "cpu_debug.h"
 
@@ -120,15 +119,15 @@ static inline void psx_gte_i_ncct(psx_cpu_t*);
 
 void cpu_a_kcall_hook(psx_cpu_t* cpu) {
     switch (cpu->r[9]) {
-        case 0x09: putc(R_A0, stdout); break;
-        case 0x3c: putchar(R_A0); break;
+        case 0x09: print("%c", R_A0); break;
+        case 0x3c: print("%c", R_A0); break;
         case 0x3e: {
             uint32_t src = R_A0;
 
             char c = psx_bus_read8(cpu->bus, src++);
 
             while (c) {
-                putchar(c);
+                print("%c", c);
 
                 c = psx_bus_read8(cpu->bus, src++);
             }
@@ -138,15 +137,15 @@ void cpu_a_kcall_hook(psx_cpu_t* cpu) {
 
 void cpu_b_kcall_hook(psx_cpu_t* cpu) {
     switch (cpu->r[9]) {
-        case 0x3b: putc(R_A0, stdout); break;
-        case 0x3d: putchar(R_A0); break;
+        case 0x3b: print("%c", R_A0); break;
+        case 0x3d: print("%c", R_A0); break;
         case 0x3f: {
             uint32_t src = R_A0;
 
             char c = psx_bus_read8(cpu->bus, src++);
 
             while (c) {
-                putchar(c);
+                print("%c", c);
 
                 c = psx_bus_read8(cpu->bus, src++);
             }
@@ -173,16 +172,14 @@ void psx_cpu_set_b_kcall_hook(psx_cpu_t* cpu, psx_cpu_kcall_hook_t hook) {
     cpu->b_function_hook = hook;
 }
 
-void psx_cpu_save_state(psx_cpu_t* cpu, FILE* file) {
-    fwrite((char*)cpu, sizeof(*cpu) - sizeof(psx_bus_t*), 1, file);
+void psx_cpu_save_state(psx_cpu_t* cpu, void* file) {
+    USED(cpu);
+    USED(file);
 }
 
-void psx_cpu_load_state(psx_cpu_t* cpu, FILE* file) {
-    if (!fread((char*)cpu, sizeof(*cpu) - sizeof(psx_bus_t*), 1, file)) {
-        perror("Error reading CPU state");
-
-        exit(1);
-    }
+void psx_cpu_load_state(psx_cpu_t* cpu, void* file) {
+    USED(cpu);
+    USED(file);
 }
 
 void psx_cpu_init(psx_cpu_t* cpu, psx_bus_t* bus) {
@@ -298,7 +295,7 @@ void psx_cpu_cycle(psx_cpu_t* cpu) {
     int cyc = psx_cpu_execute(cpu);
 
     if (!cyc) {
-        printf("psxe: Illegal instruction %08x at %08x (next=%08x, saved=%08x)\n", cpu->opcode, cpu->pc, cpu->next_pc, cpu->saved_pc);
+        print("psxe: Illegal instruction %08x at %08x (next=%08x, saved=%08x)\n", cpu->opcode, cpu->pc, cpu->next_pc, cpu->saved_pc);
 
         psx_cpu_exception(cpu, CAUSE_RI);
     }
@@ -1563,7 +1560,6 @@ static inline void psx_gte_i_invalid(psx_cpu_t* cpu) {
 #define R_TRY cpu->cop2_cr.tr.y
 #define R_TRZ cpu->cop2_cr.tr.z
 #define R_RT11 cpu->cop2_cr.rt.m[0].c[0]
-#define R_RT11 cpu->cop2_cr.rt.m[0].c[0]
 #define R_RT12 cpu->cop2_cr.rt.m[0].c[1]
 #define R_RT13 cpu->cop2_cr.rt.m[1].c[0]
 #define R_RT21 cpu->cop2_cr.rt.m[1].c[1]
@@ -1882,7 +1878,6 @@ static inline void psx_gte_i_intpl(psx_cpu_t* cpu) {
 #define R_VY v.p[1]
 #define R_VZ v.z
 #define R_MX11 mx.m[0].c[0]
-#define R_MX11 mx.m[0].c[0]
 #define R_MX12 mx.m[0].c[1]
 #define R_MX13 mx.m[1].c[0]
 #define R_MX21 mx.m[1].c[1]
@@ -1969,7 +1964,6 @@ static inline void psx_gte_i_mvmva(psx_cpu_t* cpu) {
 #undef R_VX
 #undef R_VY
 #undef R_VZ
-#undef R_MX11
 #undef R_MX11
 #undef R_MX12
 #undef R_MX13

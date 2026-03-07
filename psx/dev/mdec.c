@@ -1,9 +1,7 @@
-#include "mdec.h"
-#include "../log.h"
+#include "dev/mdec.h"
+#include "log.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include "p9.h"
 
 int zigzag[] = {
     0 , 1 , 5 , 6 , 14, 15, 27, 28,
@@ -175,7 +173,9 @@ void yuv_to_rgb(psx_mdec_t* mdec, uint8_t* buf, int xx, int yy) {
     }
 }
 
-void mdec_nop(psx_mdec_t* mdec) { /* Do nothing */ }
+void mdec_nop(psx_mdec_t* mdec) {
+    USED(mdec);
+}
 
 void mdec_decode_macroblock(psx_mdec_t* mdec) {
     if (mdec->output_depth < 2) {
@@ -334,15 +334,19 @@ uint32_t psx_mdec_read32(psx_mdec_t* mdec, uint32_t offset) {
 }
 
 uint16_t psx_mdec_read16(psx_mdec_t* mdec, uint32_t offset) {
-    printf("Unhandled 16-bit MDEC read offset=%u\n", offset);
+    USED(mdec);
+    printf("Unhandled 16-bit MDEC read offset=%08x\n", offset);
 
     exit(1);
+    return 0;
 }
 
 uint8_t psx_mdec_read8(psx_mdec_t* mdec, uint32_t offset) {
-    printf("Unhandled 8-bit MDEC read offset=%u\n", offset);
+    USED(mdec);
+    printf("Unhandled 8-bit MDEC read offset=%08x\n", offset);
 
     exit(1);
+    return 0;
 }
 
 void psx_mdec_write32(psx_mdec_t* mdec, uint32_t offset, uint32_t value) {
@@ -458,11 +462,13 @@ void psx_mdec_write32(psx_mdec_t* mdec, uint32_t offset, uint32_t value) {
 }
 
 void psx_mdec_write16(psx_mdec_t* mdec, uint32_t offset, uint16_t value) {
-    printf("Unhandled 16-bit MDEC write offset=%u, value=%04x\n", offset, value);
+    USED(mdec);
+    printf("Unhandled 16-bit MDEC write offset=%08x, value=%04x\n", offset, value);
 }
 
 void psx_mdec_write8(psx_mdec_t* mdec, uint32_t offset, uint8_t value) {
-    printf("Unhandled 8-bit MDEC write offset=%u, value=%02x\n", offset, value);
+    USED(mdec);
+    printf("Unhandled 8-bit MDEC write offset=%08x, value=%02x\n", offset, value);
 }
 
 void psx_mdec_destroy(psx_mdec_t* mdec) {

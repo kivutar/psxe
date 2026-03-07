@@ -1,7 +1,7 @@
-#ifndef EXP2_H
-#define EXP2_H
+#ifndef PSX_DEV_EXP2_H
+#define PSX_DEV_EXP2_H
 
-#include <stdint.h>
+#include "p9.h"
 
 #define PSX_EXP2_BEGIN 0x1f802000
 #define PSX_EXP2_SIZE  0x1fe000
@@ -19,7 +19,7 @@
 
 typedef void (*exp2_tty_tx)(void*, uint8_t);
 
-typedef struct {
+struct psx_exp2_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
@@ -31,7 +31,9 @@ typedef struct {
 
     uint8_t atc_stat;
     uint8_t atc_rx;
-} psx_exp2_t;
+};
+
+typedef struct psx_exp2_t psx_exp2_t;
 
 psx_exp2_t* psx_exp2_create(void);
 void psx_exp2_init(psx_exp2_t*, exp2_tty_tx atcons_tx, exp2_tty_tx duart_tx);

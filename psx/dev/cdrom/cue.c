@@ -1,10 +1,6 @@
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdio.h>
-#include <ctype.h>
+#include "p9.h"
 
-#include "cue.h"
+#include "dev/cdrom/cue.h"
 
 static const char* cue_keywords[] = {
     "4CH",
@@ -143,32 +139,30 @@ int cue_parse_number(cue_t* cue) {
 }
 
 uint32_t cue_parse_msf(cue_t* cue) {
-    int m = 0;
-    int s = 0;
-    int f = 0;
+    uint32_t frames = 0;
 
     if (!isdigit(cue->c))
         return 0;
 
-    m = cue_parse_number(cue);
+    frames = cue_parse_number(cue) * 4500;
 
     if (cue->c != ':')
         return 0;
 
     cue->c = fgetc(cue->file);
 
-    s = cue_parse_number(cue);
+    frames += cue_parse_number(cue) * 75;
 
     if (cue->c != ':')
         return 0;
 
     cue->c = fgetc(cue->file);
 
-    f = cue_parse_number(cue);
+    frames += cue_parse_number(cue);
 
     // 1 second = 75 frames (sectors)
     // 1 minute = 60 seconds = 4500 frames
-    return f + (s * 75) + (m * 4500);
+    return frames;
 }
 
 void cue_parse_index(cue_t* cue) {
@@ -278,7 +272,7 @@ int cue_parse(cue_t* cue, const char* path) {
     while (isspace(cue->c))
         cue->c = fgetc(cue->file);
 
-    while (!feof(cue->file)) {
+    while (cue->c != EOF) {
         int kw = cue_parse_keyword(cue);
 
         switch (kw) {
@@ -303,12 +297,13 @@ int cue_parse(cue_t* cue, const char* path) {
                 while ((cue->c != '\n') && (cue->c != '\r'))
                     cue->c = fgetc(cue->file);
 
-                while ((cue->c == '\n') && (cue->c == '\r'))
+                while ((cue->c == '\n') || (cue->c == '\r'))
                     cue->c = fgetc(cue->file);
             } break;
 
             default: {
-                printf("Unknown keyword: %s (%u)\n", cue_keywords[kw], kw);
+                const char* k = (kw >= 0 && cue_keywords[kw]) ? cue_keywords[kw] : "<unknown>";
+                printf("Unknown keyword: %s (%d)\n", k, kw);
 
                 return 1;
             } break;

@@ -1,9 +1,9 @@
-#ifndef SPU_H
-#define SPU_H
+#ifndef PSX_DEV_SPU_H
+#define PSX_DEV_SPU_H
 
-#include <stdint.h>
+#include "p9.h"
 
-#include "ic.h"
+#include "dev/ic.h"
 
 #define PSX_SPU_BEGIN 0x1f801c00
 #define PSX_SPU_SIZE  0x400
@@ -36,7 +36,7 @@
 #define SPUR_MBASE   0x1a2
 #define SPUR_SPUIRQA 0x1a4
 
-typedef struct __attribute__((__packed__)) {
+struct __attribute__((__packed__)) psx_spu_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
@@ -170,7 +170,9 @@ typedef struct __attribute__((__packed__)) {
         int adsr_sustain_level;
         uint32_t envctl;
     } data[24];
-} psx_spu_t;
+};
+
+typedef struct psx_spu_t psx_spu_t;
 
 psx_spu_t* psx_spu_create(void);
 void psx_spu_init(psx_spu_t*, psx_ic_t*);

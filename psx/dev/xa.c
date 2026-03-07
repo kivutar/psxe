@@ -1,8 +1,9 @@
-#include "xa.h"
+#include "dev/xa.h"
 
-#include <stdint.h>
+#include "p9.h"
 
 void xa_decode_audio(uint8_t* src, uint16_t* dst) {
+    USED(dst);
     // Not a XA sector
     if (src[XA_HDR_MODE] != 0x02)
         return;

@@ -1,9 +1,9 @@
-#ifndef MDEC_H
-#define MDEC_H
+#ifndef PSX_DEV_MDEC_H
+#define PSX_DEV_MDEC_H
 
-#include <stdint.h>
+#include "p9.h"
 
-#include "../log.h"
+#include "log.h"
 
 #define PSX_MDEC_SIZE    0x8
 #define PSX_MDEC_BEGIN   0x1f801820
@@ -41,7 +41,7 @@ enum {
     MDEC_CMD_SET_ST
 };
 
-typedef struct {
+struct psx_mdec_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
@@ -83,7 +83,9 @@ typedef struct {
     int16_t cbblk[64];
 
     uint32_t status;
-} psx_mdec_t;
+};
+
+typedef struct psx_mdec_t psx_mdec_t;
 
 psx_mdec_t* psx_mdec_create(void);
 void psx_mdec_init(psx_mdec_t*);

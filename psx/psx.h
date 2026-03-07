@@ -5,7 +5,7 @@
 #include "log.h"
 #include "exe.h"
 
-#include <stdint.h>
+#include "p9.h"
 
 #define STR1(m) #m
 #define STR(m) STR1(m)

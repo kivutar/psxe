@@ -1,9 +1,7 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
-#include "spu.h"
-#include "../log.h"
+#include "dev/spu.h"
+#include "log.h"
 
 #define CLAMP(v, l, h) (((v) <= (l)) ? (l) : (((v) >= (h)) ? (h) : (v)))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
@@ -135,6 +133,7 @@ uint16_t psx_spu_read16(psx_spu_t* spu, uint32_t offset) {
 }
 
 uint8_t psx_spu_read8(psx_spu_t* spu, uint32_t offset) {
+    USED(spu);
     log_fatal("Unhandled 8-bit SPU read at offset %08x", offset);
 
     return 0x0;
@@ -161,14 +160,14 @@ void spu_read_block(psx_spu_t* spu, int v) {
         uint16_t n = (spu->ram[addr + 2 + (j >> 1)] >> ((j & 1) * 4)) & 0xf;
 
         // Sign extend t
-        int16_t t = (int16_t)(n << 12) >> 12; 
-        int16_t s = (t << shift) + (((spu->data[v].h[0] * f0) + (spu->data[v].h[1] * f1) + 32) / 64);
+        int16_t t = (int16_t)(n << 12) >> 12;
+        int32_t s = (t << shift) + (((spu->data[v].h[0] * f0) + (spu->data[v].h[1] * f1) + 32) / 64);
         
         s = (s < INT16_MIN) ? INT16_MIN : ((s > INT16_MAX) ? INT16_MAX : s);
 
         spu->data[v].h[1] = spu->data[v].h[0];
-        spu->data[v].h[0] = s;
-        spu->data[v].buf[j] = s;
+        spu->data[v].h[0] = (int16_t)s;
+        spu->data[v].buf[j] = (int16_t)s;
     }
 }
 
@@ -452,6 +451,7 @@ void psx_spu_write16(psx_spu_t* spu, uint32_t offset, uint16_t value) {
 }
 
 void psx_spu_write8(psx_spu_t* spu, uint32_t offset, uint8_t value) {
+    USED(spu);
     printf("Unhandled 8-bit SPU write at offset %08x (%02x)\n", offset, value);
 }
 
@@ -645,7 +645,7 @@ uint32_t psx_spu_get_sample(psx_spu_t* spu) {
         int16_t g1 = g_spu_gauss_table[0x1ff - gauss_index];
         int16_t g2 = g_spu_gauss_table[0x100 + gauss_index];
         int16_t g3 = g_spu_gauss_table[0x000 + gauss_index];
-        int16_t out = spu->data[v].s[0];
+        int16_t out;
 
         // out = interpolate_hermite(
         //     spu->data[v].s[3],

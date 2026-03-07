@@ -1,5 +1,5 @@
-#ifndef XA_H
-#define XA_H
+#ifndef PSX_DEV_XA_H
+#define PSX_DEV_XA_H
 
 /*
   000h 0Ch  Sync

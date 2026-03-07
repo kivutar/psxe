@@ -1,9 +1,7 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
-#include "../log.h"
-#include "exp2.h"
+#include "log.h"
+#include "dev/exp2.h"
 
 psx_exp2_t* psx_exp2_create(void) {
     return (psx_exp2_t*)malloc(sizeof(psx_exp2_t));
@@ -24,14 +22,20 @@ void psx_exp2_atcons_put(psx_exp2_t* exp2, char c) {
 }
 
 void psx_exp2_duart_put(psx_exp2_t* exp2, char c) {
+    USED(exp2);
+    USED(c);
     /* To-do */
 }
 
 uint32_t psx_exp2_read32(psx_exp2_t* exp2, uint32_t offset) {
+    USED(exp2);
+    USED(offset);
     return 0;
 }
 
 uint16_t psx_exp2_read16(psx_exp2_t* exp2, uint32_t offset) {
+    USED(exp2);
+    USED(offset);
     return 0;
 }
 
@@ -49,10 +53,12 @@ uint8_t psx_exp2_read8(psx_exp2_t* exp2, uint32_t offset) {
 }
 
 void psx_exp2_write32(psx_exp2_t* exp2, uint32_t offset, uint32_t value) {
+    USED(exp2);
     log_warn("Unhandled 32-bit EXP2 write at offset %08x (%08x)", offset, value);
 }
 
 void psx_exp2_write16(psx_exp2_t* exp2, uint32_t offset, uint16_t value) {
+    USED(exp2);
     log_warn("Unhandled 16-bit EXP2 write at offset %08x (%04x)", offset, value);
 }
 

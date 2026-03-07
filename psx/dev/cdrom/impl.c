@@ -1,4 +1,4 @@
-#include "cdrom.h"
+#include "dev/cdrom/cdrom.h"
 
 #define BTOI(b) btoi_table[b]
 #define ITOB(b) itob_table[b]

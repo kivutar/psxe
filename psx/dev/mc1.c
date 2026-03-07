@@ -1,9 +1,7 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
-#include "mc1.h"
-#include "../log.h"
+#include "dev/mc1.h"
+#include "log.h"
 
 /*
   0-3   Write Delay        (00h..0Fh=01h..10h Cycles)
@@ -24,7 +22,14 @@
   31    Wait               (1=wait on external device before being ready)
 */
 
-#define DEFAULT_DLY 2
+static uint32_t
+mc1_default_delay(psx_mc1_t* mc1)
+{
+    USED(mc1);
+    return 2;
+}
+
+#define DEFAULT_DLY mc1_default_delay(mc1)
 
 // #define WRITE_DLY(dev) ((mc1-> ## dev ## _delay & 0xf) + 1)
 // #define READ_DLY(dev) (((mc1-> ## dev ## _delay >> 4) & 0xf) + 1)
@@ -92,12 +97,14 @@ uint32_t psx_mc1_read32(psx_mc1_t* mc1, uint32_t offset) {
 }
 
 uint16_t psx_mc1_read16(psx_mc1_t* mc1, uint32_t offset) {
+    USED(mc1);
     log_warn("Unhandled 16-bit MC1 read at offset %08x", offset);
 
     return 0x0;
 }
 
 uint8_t psx_mc1_read8(psx_mc1_t* mc1, uint32_t offset) {
+    USED(mc1);
     log_warn("Unhandled 8-bit MC1 read at offset %08x", offset);
 
     return 0x0;
@@ -122,10 +129,12 @@ void psx_mc1_write32(psx_mc1_t* mc1, uint32_t offset, uint32_t value) {
 }
 
 void psx_mc1_write16(psx_mc1_t* mc1, uint32_t offset, uint16_t value) {
+    USED(mc1);
     log_warn("Unhandled 16-bit MC1 write at offset %08x (%04x)", offset, value);
 }
 
 void psx_mc1_write8(psx_mc1_t* mc1, uint32_t offset, uint8_t value) {
+    USED(mc1);
     log_warn("Unhandled 8-bit MC1 write at offset %08x (%02x)", offset, value);
 }
 
@@ -162,6 +171,7 @@ uint32_t psx_mc1_get_ic_read_delay(psx_mc1_t* mc1) {
 }
 
 uint32_t psx_mc1_get_scratchpad_read_delay(psx_mc1_t* mc1) {
+    USED(mc1);
     return 1;
 }
 
@@ -218,6 +228,7 @@ uint32_t psx_mc1_get_ic_write_delay(psx_mc1_t* mc1) {
 }
 
 uint32_t psx_mc1_get_scratchpad_write_delay(psx_mc1_t* mc1) {
+    USED(mc1);
     return 1;
 }
 

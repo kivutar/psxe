@@ -1,11 +1,7 @@
-#include "dma.h"
-#include "../log.h"
+#include "dev/dma.h"
+#include "log.h"
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <string.h>
-#include <ctype.h>
+#include "p9.h"
 
 psx_dma_t* psx_dma_create(void) {
     return (psx_dma_t*)malloc(sizeof(psx_dma_t));
@@ -292,6 +288,7 @@ void psx_dma_do_gpu_request(psx_dma_t* dma) {
 }
 
 void psx_dma_do_gpu_burst(psx_dma_t* dma) {
+    USED(dma);
     printf("GPU DMA burst sync mode unimplemented\n");
 
     exit(1);
@@ -437,6 +434,7 @@ void psx_dma_do_spu(psx_dma_t* dma) {
 }
 
 void psx_dma_do_pio(psx_dma_t* dma) {
+    USED(dma);
     log_fatal("PIO DMA channel unimplemented");
 }
 
@@ -474,6 +472,7 @@ void psx_dma_do_otc(psx_dma_t* dma) {
 }
 
 void psx_dma_update(psx_dma_t* dma, int cyc) {
+    USED(cyc);
     if (dma->cdrom_irq_delay) {
         dma->cdrom_irq_delay = 0;
 

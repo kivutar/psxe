@@ -1,10 +1,6 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include "p9.h"
 
-#include "gpu.h"
-#include "../log.h"
+#include "dev/gpu.h"
 
 #define SE10(v) ((int16_t)((v) << 5) >> 5)
 
@@ -115,12 +111,13 @@ uint32_t psx_gpu_read32(psx_gpu_t* gpu, uint32_t offset) {
         case 0x04: return gpu->gpustat | 0x1c000000;
     }
 
-    log_warn("Unhandled 32-bit GPU read at offset %08x", offset);
+    print("Unhandled 32-bit GPU read at offset %08x\n", offset);
 
     return 0x0;
 }
 
 uint16_t psx_gpu_read16(psx_gpu_t* gpu, uint32_t offset) {
+    USED(gpu);
     printf("Unhandled 16-bit GPU read at offset %08x\n", offset);
 
     return 0;
@@ -129,6 +126,7 @@ uint16_t psx_gpu_read16(psx_gpu_t* gpu, uint32_t offset) {
 }
 
 uint8_t psx_gpu_read8(psx_gpu_t* gpu, uint32_t offset) {
+    USED(gpu);
     printf("Unhandled 8-bit GPU read at offset %08x\n", offset);
 
     return 0;
@@ -223,6 +221,7 @@ uint16_t gpu_fetch_texel_bilinear(psx_gpu_t* gpu, float tx, float ty, uint32_t t
     ((z < 0) || ((z == 0) && ((b.y > a.y) || ((b.y == a.y) && (b.x < a.x)))))
 
 void gpu_render_triangle(psx_gpu_t* gpu, vertex_t v0, vertex_t v1, vertex_t v2, poly_data_t data, int edge) {
+    USED(edge);
     vertex_t a, b, c, p;
 
     int tpx = (data.texp & 0xf) << 6;
@@ -293,8 +292,8 @@ void gpu_render_triangle(psx_gpu_t* gpu, vertex_t v0, vertex_t v1, vertex_t v2, 
             if (TL(z2, a, b))
                 continue;
 
-            uint16_t color = 0;
-            uint32_t mod   = 0;
+            uint16_t color;
+            uint32_t mod;
 
             if (data.attrib & PA_SHADED) {
                 float cr = (z0 * ((a.c >>  0) & 0xff) + z1 * ((b.c >>  0) & 0xff) + z2 * ((c.c >>  0) & 0xff)) / area;
@@ -425,15 +424,6 @@ void gpu_render_triangle(psx_gpu_t* gpu, vertex_t v0, vertex_t v1, vertex_t v2, 
 #define CLAMP(v, d, u) ((v) <= (d)) ? (d) : (((v) >= (u)) ? (u) : (v))
 
 void gpu_render_rect(psx_gpu_t* gpu, rect_data_t data) {
-
-#if 0 //PATCH2:Fix clipping bug.
-    if ((data.v0.x >= 1024) || (data.v0.y >= 512))
-        return;
-
-    if ((data.v0.x <= -1024) || (data.v0.y <= -512))
-        return;
-#endif
-
     uint16_t width, height;
 
     switch ((data.attrib >> 3) & 3) {
@@ -441,6 +431,7 @@ void gpu_render_rect(psx_gpu_t* gpu, rect_data_t data) {
         case RS_1X1     : { width = 1         ; height = 1          ; } break;
         case RS_8X8     : { width = 8         ; height = 8          ; } break;
         case RS_16X16   : { width = 16        ; height = 16         ; } break;
+        default         : { width = 0         ; height = 0          ; } break;
     }
 
     int textured = (data.attrib & RA_TEXTURED) != 0;
@@ -453,10 +444,8 @@ void gpu_render_rect(psx_gpu_t* gpu, rect_data_t data) {
     /* Offset coordinates */
     data.v0.x += gpu->off_x;
     data.v0.y += gpu->off_y;
-#if 1 //PATCH2:Fix clipping bug.
     data.v0.x = SE10(data.v0.x);
     data.v0.y = SE10(data.v0.y);
-#endif
     /* Calculate bounding box */
     int xmax = data.v0.x + width;
     int ymax = data.v0.y + height;
@@ -684,6 +673,7 @@ void gpu_render_flat_rectangle(psx_gpu_t* gpu, vertex_t v, uint32_t w, uint32_t 
 }
 
 void gpu_render_textured_rectangle(psx_gpu_t* gpu, vertex_t v, uint32_t w, uint32_t h, uint16_t clutx, uint16_t cluty, uint32_t color) {
+    USED(color);
     vertex_t a = v;
 
     a.x += gpu->off_x;
@@ -1141,9 +1131,6 @@ void gpu_cmd_a0(psx_gpu_t* gpu) {
             if (gpu->xcnt == gpu->xsiz) {
                 ++gpu->ycnt;
                 gpu->xcnt = 0;
-
-                xpos = (gpu->xpos + gpu->xcnt) & 0x3ff;
-                ypos = (gpu->ypos + gpu->ycnt) & 0x1ff;
             }
 
             gpu->tsiz -= 2;
@@ -1873,20 +1860,22 @@ void psx_gpu_write32(psx_gpu_t* gpu, uint32_t offset, uint32_t value) {
                 } break;
             }
 
-            log_error("GP1(%02Xh) args=%06x", value >> 24, value & 0xffffff);
+            print("GP1(%02Xh) args=%06x\n", value >> 24, value & 0xffffff);
 
             return;
         } break;
     }
 
-    log_warn("Unhandled 32-bit GPU write at offset %08x (%08x)", offset, value);
+    print("Unhandled 32-bit GPU write at offset %08x (%08x)\n", offset, value);
 }
 
 void psx_gpu_write16(psx_gpu_t* gpu, uint32_t offset, uint16_t value) {
+    USED(gpu);
     printf("Unhandled 16-bit GPU write at offset %08x (%04x)\n", offset, value);
 }
 
 void psx_gpu_write8(psx_gpu_t* gpu, uint32_t offset, uint8_t value) {
+    USED(gpu);
     printf("Unhandled 8-bit GPU write at offset %08x (%02x)\n", offset, value);
 }
 

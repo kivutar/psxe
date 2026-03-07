@@ -1,20 +1,22 @@
-#ifndef SCRATCHPAD_H
-#define SCRATCHPAD_H
+#ifndef PSX_DEV_SCRATCHPAD_H
+#define PSX_DEV_SCRATCHPAD_H
 
-#include <stdint.h>
+#include "p9.h"
 
-#include "mc1.h"
+#include "dev/mc1.h"
 
 #define PSX_SCRATCHPAD_BEGIN 0x1f800000
 #define PSX_SCRATCHPAD_SIZE  0x400
 #define PSX_SCRATCHPAD_END   0x1f8003ff
 
-typedef struct {
+struct psx_scratchpad_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
     uint8_t* buf;
-} psx_scratchpad_t;
+};
+
+typedef struct psx_scratchpad_t psx_scratchpad_t;
 
 psx_scratchpad_t* psx_scratchpad_create(void);
 void psx_scratchpad_init(psx_scratchpad_t*);

@@ -1,9 +1,7 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
-#include "mc2.h"
-#include "../log.h"
+#include "dev/mc2.h"
+#include "log.h"
 
 psx_mc2_t* psx_mc2_create(void) {
     return (psx_mc2_t*)malloc(sizeof(psx_mc2_t));
@@ -32,12 +30,14 @@ uint32_t psx_mc2_read32(psx_mc2_t* mc2, uint32_t offset) {
 }
 
 uint16_t psx_mc2_read16(psx_mc2_t* mc2, uint32_t offset) {
+    USED(mc2);
     log_warn("Unhandled 16-bit MC2 read at offset %08x", offset);
 
     return 0x0;
 }
 
 uint8_t psx_mc2_read8(psx_mc2_t* mc2, uint32_t offset) {
+    USED(mc2);
     log_warn("Unhandled 8-bit MC2 read at offset %08x", offset);
 
     return 0x0;
@@ -54,10 +54,12 @@ void psx_mc2_write32(psx_mc2_t* mc2, uint32_t offset, uint32_t value) {
 }
 
 void psx_mc2_write16(psx_mc2_t* mc2, uint32_t offset, uint16_t value) {
+    USED(mc2);
     log_warn("Unhandled 16-bit MC2 write at offset %08x (%04x)", offset, value);
 }
 
 void psx_mc2_write8(psx_mc2_t* mc2, uint32_t offset, uint8_t value) {
+    USED(mc2);
     log_warn("Unhandled 8-bit MC2 write at offset %08x (%02x)", offset, value);
 }
 

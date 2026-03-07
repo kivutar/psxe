@@ -1,7 +1,7 @@
-#ifndef INPUT_H
-#define INPUT_H
+#ifndef PSX_DEV_INPUT_H
+#define PSX_DEV_INPUT_H
 
-#include <stdint.h>
+#include "p9.h"
 
 struct psx_input_t;
 

@@ -1,7 +1,6 @@
-#include "list.h"
+#include "dev/cdrom/list.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
 list_t* list_create(void) {
     list_t* list = malloc(sizeof(list_t));

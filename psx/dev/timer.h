@@ -1,10 +1,10 @@
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef PSX_DEV_TIMER_H
+#define PSX_DEV_TIMER_H
 
-#include <stdint.h>
+#include "p9.h"
 
-#include "ic.h"
-#include "gpu.h"
+#include "dev/ic.h"
+#include "dev/gpu.h"
 
 #define PSX_TIMER_BEGIN 0x1f801100
 #define PSX_TIMER_SIZE  0x30
@@ -86,7 +86,7 @@
   16-31 Garbage (next opcode)
 */
 
-typedef struct {
+struct psx_timer_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
@@ -116,7 +116,9 @@ typedef struct {
         int paused;
         int blank_once;
     } timer[3];
-} psx_timer_t;
+};
+
+typedef struct psx_timer_t psx_timer_t;
 
 psx_timer_t* psx_timer_create(void);
 void psx_timer_init(psx_timer_t*, psx_ic_t*, psx_gpu_t*);

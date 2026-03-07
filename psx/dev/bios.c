@@ -1,9 +1,26 @@
-#include "bios.h"
-#include "../log.h"
+#include "dev/bios.h"
+#include "log.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include "p9.h"
+
+static int
+psx_readn_fd(int fd, void* buf, uint32_t size)
+{
+    uint8_t* p = (uint8_t*)buf;
+    uint32_t n = size;
+
+    while (n) {
+        long r = read(fd, p, n);
+
+        if (r <= 0)
+            return -1;
+
+        p += r;
+        n -= r;
+    }
+
+    return 0;
+}
 
 psx_bios_t* psx_bios_create(void) {
     return (psx_bios_t*)malloc(sizeof(psx_bios_t));
@@ -21,9 +38,10 @@ int psx_bios_load(psx_bios_t* bios, const char* path) {
     if (!path)
         return 0;
 
-    FILE* file = fopen(path, "rb");
+    int fd = open(path, OREAD);
+    vlong size;
 
-    if (!file)
+    if (fd < 0)
         return 1;
 
     // Almost all PS1 BIOS ROMs are 512 KiB in size.
@@ -31,19 +49,30 @@ int psx_bios_load(psx_bios_t* bios, const char* path) {
     // This is a special asian model PS1 that had built-in support
     // for Video CD (VCD) playback. Its BIOS is double the normal
     // size
-    fseek(file, 0, SEEK_END);
+    size = seek(fd, 0, 2);
+    if (size <= 0) {
+        close(fd);
+        return 2;
+    }
 
-    size_t size = ftell(file);
-
-    fseek(file, 0, SEEK_SET);
+    if (seek(fd, 0, 0) < 0) {
+        close(fd);
+        return 2;
+    }
 
     bios->buf = malloc(size);
+    if (!bios->buf) {
+        close(fd);
+        return 2;
+    }
     bios->io_size = size;
 
-    if (!fread(bios->buf, 1, size, file))
+    if (psx_readn_fd(fd, bios->buf, size) < 0) {
+        close(fd);
         return 2;
+    }
 
-    fclose(file);
+    close(fd);
 
     return 0;
 }
@@ -61,14 +90,17 @@ uint8_t psx_bios_read8(psx_bios_t* bios, uint32_t offset) {
 }
 
 void psx_bios_write32(psx_bios_t* bios, uint32_t offset, uint32_t value) {
+    USED(bios);
     log_warn("Unhandled 32-bit BIOS write at offset %08x (%08x)", offset, value);
 }
 
 void psx_bios_write16(psx_bios_t* bios, uint32_t offset, uint16_t value) {
+    USED(bios);
     log_warn("Unhandled 16-bit BIOS write at offset %08x (%04x)", offset, value);
 }
 
 void psx_bios_write8(psx_bios_t* bios, uint32_t offset, uint8_t value) {
+    USED(bios);
     log_warn("Unhandled 8-bit BIOS write at offset %08x (%02x)", offset, value);
 }
 

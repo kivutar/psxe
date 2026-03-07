@@ -1,9 +1,7 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
-#include "../log.h"
-#include "exp1.h"
+#include "log.h"
+#include "dev/exp1.h"
 
 psx_exp1_t* psx_exp1_create(void) {
     return (psx_exp1_t*)malloc(sizeof(psx_exp1_t));
@@ -56,14 +54,17 @@ uint8_t psx_exp1_read8(psx_exp1_t* exp1, uint32_t offset) {
 }
 
 void psx_exp1_write32(psx_exp1_t* exp1, uint32_t offset, uint32_t value) {
+    USED(exp1);
     log_warn("Unhandled 32-bit EXP1 write at offset %08x (%08x)", offset, value);
 }
 
 void psx_exp1_write16(psx_exp1_t* exp1, uint32_t offset, uint16_t value) {
+    USED(exp1);
     log_warn("Unhandled 16-bit EXP1 write at offset %08x (%04x)", offset, value);
 }
 
 void psx_exp1_write8(psx_exp1_t* exp1, uint32_t offset, uint8_t value) {
+    USED(exp1);
     log_warn("Unhandled 8-bit EXP1 write at offset %08x (%02x)", offset, value);
 }
 

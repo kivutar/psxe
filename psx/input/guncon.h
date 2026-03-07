@@ -4,10 +4,10 @@
     Namco GunCon emulation
 */
 
-#ifndef GUNCON_H
-#define GUNCON_H
+#ifndef PSX_INPUT_GUNCON_H
+#define PSX_INPUT_GUNCON_H
 
-#include "../dev/input.h"
+#include "dev/input.h"
 
 /*
   __Halfword 0 (Controller Info)___________________

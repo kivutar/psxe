@@ -1,20 +1,22 @@
-#ifndef BIOS_H
-#define BIOS_H
+#ifndef PSX_DEV_BIOS_H
+#define PSX_DEV_BIOS_H
 
-#include <stdint.h>
+#include "p9.h"
 
-#include "../log.h"
+#include "log.h"
 
 #define PSX_BIOS_SIZE   0x80000
 #define PSX_BIOS_BEGIN  0x1fc00000
 #define PSX_BIOS_END    0x1fc7ffff
 
-typedef struct {
+struct psx_bios_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
     uint8_t* buf;
-} psx_bios_t;
+};
+
+typedef struct psx_bios_t psx_bios_t;
 
 psx_bios_t* psx_bios_create(void);
 void psx_bios_init(psx_bios_t*);

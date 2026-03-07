@@ -1,11 +1,9 @@
-#ifndef GPU_H
-#define GPU_H
+#ifndef PSX_DEV_GPU_H
+#define PSX_DEV_GPU_H
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
-#include "ic.h"
+#include "dev/ic.h"
 
 #define PSX_GPU_BEGIN 0x1f801810
 #define PSX_GPU_SIZE  0x8

@@ -1,9 +1,7 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
-#include "timer.h"
-#include "../log.h"
+#include "dev/timer.h"
+#include "log.h"
 
 #define T0_COUNTER     timer->timer[0].counter
 #define T0_SYNC_EN     timer->timer[0].sync_enable
@@ -193,6 +191,7 @@ uint16_t psx_timer_read16(psx_timer_t* timer, uint32_t offset) {
 }
 
 uint8_t psx_timer_read8(psx_timer_t* timer, uint32_t offset) {
+    USED(timer);
     printf("Unhandled 8-bit TIMER read at offset %08x\n", offset);
 
     return 0x0;
@@ -227,6 +226,7 @@ void psx_timer_write16(psx_timer_t* timer, uint32_t offset, uint16_t value) {
 }
 
 void psx_timer_write8(psx_timer_t* timer, uint32_t offset, uint8_t value) {
+    USED(timer);
     printf("Unhandled 8-bit TIMER write at offset %08x (%02x)\n", offset, value);
 }
 
@@ -336,6 +336,7 @@ void timer_update_timer2(psx_timer_t* timer, int cyc) {
 }
 
 void psx_timer_update(psx_timer_t* timer, int cyc) {
+    USED(cyc);
     timer->prev_hblank = timer->hblank;
     timer->prev_vblank = timer->vblank;
 

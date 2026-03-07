@@ -1,8 +1,7 @@
-#ifndef QUEUE_H
-#define QUEUE_H
+#ifndef PSX_DEV_QUEUE_H
+#define PSX_DEV_QUEUE_H
 
-#include <stdint.h>
-#include <stddef.h>
+#include "p9.h"
 
 typedef struct {
     uint8_t* buf;

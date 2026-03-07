@@ -1,9 +1,8 @@
-#include "ram.h"
-#include "../log.h"
+#include "dev/ram.h"
+#include "log.h"
+#include "dev/mc2.h"
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include "p9.h"
 
 psx_ram_t* psx_ram_create(void) {
     return (psx_ram_t*)malloc(sizeof(psx_ram_t));

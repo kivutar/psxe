@@ -1,13 +1,13 @@
-#ifndef MC1_H
-#define MC1_H
+#ifndef PSX_DEV_MC1_H
+#define PSX_DEV_MC1_H
 
-#include <stdint.h>
+#include "p9.h"
 
 #define PSX_MC1_BEGIN 0x1f801000
 #define PSX_MC1_SIZE  0x24
 #define PSX_MC1_END   0x1f801023
 
-typedef struct {
+struct psx_mc1_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
@@ -20,7 +20,9 @@ typedef struct {
     uint32_t cdrom_delay;
     uint32_t exp2_delay;
     uint32_t com_delay;
-} psx_mc1_t;
+};
+
+typedef struct psx_mc1_t psx_mc1_t;
 
 typedef struct {
     int fst;

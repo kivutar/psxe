@@ -1,9 +1,68 @@
-#include <stdint.h>
-#include <stdlib.h>
+#include "p9.h"
 
 #include "bus.h"
 #include "bus_init.h"
+#include "dev/cdrom/cdrom.h"
+#include "dev/bios.h"
+#include "dev/ram.h"
+#include "dev/dma.h"
+#include "dev/exp1.h"
+#include "dev/exp2.h"
+#include "dev/mc1.h"
+#include "dev/mc2.h"
+#include "dev/mc3.h"
+#include "dev/ic.h"
+#include "dev/scratchpad.h"
+#include "dev/gpu.h"
 #include "log.h"
+
+/*
+ * 6c struggles with the full SPU header in this TU; bus only needs
+ * the MMIO prefix fields and read/write entry points.
+ */
+struct psx_spu_t {
+    uint32_t bus_delay;
+    uint32_t io_base, io_size;
+};
+uint32_t psx_spu_read32(struct psx_spu_t*, uint32_t);
+uint16_t psx_spu_read16(struct psx_spu_t*, uint32_t);
+uint8_t psx_spu_read8(struct psx_spu_t*, uint32_t);
+void psx_spu_write32(struct psx_spu_t*, uint32_t, uint32_t);
+void psx_spu_write16(struct psx_spu_t*, uint32_t, uint16_t);
+void psx_spu_write8(struct psx_spu_t*, uint32_t, uint8_t);
+
+struct psx_timer_t {
+    uint32_t bus_delay;
+    uint32_t io_base, io_size;
+};
+uint32_t psx_timer_read32(struct psx_timer_t*, uint32_t);
+uint16_t psx_timer_read16(struct psx_timer_t*, uint32_t);
+uint8_t psx_timer_read8(struct psx_timer_t*, uint32_t);
+void psx_timer_write32(struct psx_timer_t*, uint32_t, uint32_t);
+void psx_timer_write16(struct psx_timer_t*, uint32_t, uint16_t);
+void psx_timer_write8(struct psx_timer_t*, uint32_t, uint8_t);
+
+struct psx_pad_t {
+    uint32_t bus_delay;
+    uint32_t io_base, io_size;
+};
+uint32_t psx_pad_read32(struct psx_pad_t*, uint32_t);
+uint16_t psx_pad_read16(struct psx_pad_t*, uint32_t);
+uint8_t psx_pad_read8(struct psx_pad_t*, uint32_t);
+void psx_pad_write32(struct psx_pad_t*, uint32_t, uint32_t);
+void psx_pad_write16(struct psx_pad_t*, uint32_t, uint16_t);
+void psx_pad_write8(struct psx_pad_t*, uint32_t, uint8_t);
+
+struct psx_mdec_t {
+    uint32_t bus_delay;
+    uint32_t io_base, io_size;
+};
+uint32_t psx_mdec_read32(struct psx_mdec_t*, uint32_t);
+uint16_t psx_mdec_read16(struct psx_mdec_t*, uint32_t);
+uint8_t psx_mdec_read8(struct psx_mdec_t*, uint32_t);
+void psx_mdec_write32(struct psx_mdec_t*, uint32_t, uint32_t);
+void psx_mdec_write16(struct psx_mdec_t*, uint32_t, uint16_t);
+void psx_mdec_write8(struct psx_mdec_t*, uint32_t, uint8_t);
 
 #define RANGE(v, s, e) ((v >= s) && (v < e))
 
@@ -17,21 +76,23 @@ psx_bus_t* psx_bus_create(void) {
 }
 
 // Does nothing for now
-void psx_bus_init(psx_bus_t* bus) {}
+void psx_bus_init(psx_bus_t* bus) {
+    USED(bus);
+}
 
 void psx_bus_destroy(psx_bus_t* bus) {
     free(bus);
 }
 
-#define HANDLE_READ(dev, bits) \
+#define HANDLE_READ_OP(dev, fn) \
     if (RANGE(addr, bus->dev->io_base, (bus->dev->io_base + bus->dev->io_size))) { \
         bus->access_cycles = bus->dev->bus_delay; \
-        return psx_ ## dev ## _read ## bits (bus->dev, addr - bus->dev->io_base); \
+        return fn(bus->dev, addr - bus->dev->io_base); \
     }
-#define HANDLE_WRITE(dev, bits) \
+#define HANDLE_WRITE_OP(dev, fn) \
     if (RANGE(addr, bus->dev->io_base, (bus->dev->io_base + bus->dev->io_size))) { \
         bus->access_cycles = bus->dev->bus_delay; \
-        psx_ ## dev ## _write ## bits (bus->dev, addr - bus->dev->io_base, value); \
+        fn(bus->dev, addr - bus->dev->io_base, value); \
         return; \
     }
 
@@ -44,22 +105,22 @@ uint32_t psx_bus_read32(psx_bus_t* bus, uint32_t addr) {
         log_fatal("Unaligned 32-bit read from %08x:%08x", vaddr, addr);
     }
 
-    HANDLE_READ(bios, 32);
-    HANDLE_READ(ram, 32);
-    HANDLE_READ(dma, 32);
-    HANDLE_READ(exp1, 32);
-    HANDLE_READ(exp2, 32);
-    HANDLE_READ(mc1, 32);
-    HANDLE_READ(mc2, 32);
-    HANDLE_READ(mc3, 32);
-    HANDLE_READ(ic, 32);
-    HANDLE_READ(scratchpad, 32);
-    HANDLE_READ(gpu, 32);
-    HANDLE_READ(spu, 32);
-    HANDLE_READ(timer, 32);
-    HANDLE_READ(cdrom, 32);
-    HANDLE_READ(pad, 32);
-    HANDLE_READ(mdec, 32);
+    HANDLE_READ_OP(bios, psx_bios_read32);
+    HANDLE_READ_OP(ram, psx_ram_read32);
+    HANDLE_READ_OP(dma, psx_dma_read32);
+    HANDLE_READ_OP(exp1, psx_exp1_read32);
+    HANDLE_READ_OP(exp2, psx_exp2_read32);
+    HANDLE_READ_OP(mc1, psx_mc1_read32);
+    HANDLE_READ_OP(mc2, psx_mc2_read32);
+    HANDLE_READ_OP(mc3, psx_mc3_read32);
+    HANDLE_READ_OP(ic, psx_ic_read32);
+    HANDLE_READ_OP(scratchpad, psx_scratchpad_read32);
+    HANDLE_READ_OP(gpu, psx_gpu_read32);
+    HANDLE_READ_OP(spu, psx_spu_read32);
+    HANDLE_READ_OP(timer, psx_timer_read32);
+    HANDLE_READ_OP(cdrom, psx_cdrom_read32);
+    HANDLE_READ_OP(pad, psx_pad_read32);
+    HANDLE_READ_OP(mdec, psx_mdec_read32);
 
     log_fatal("Unhandled 32-bit read from %08x:%08x", vaddr, addr);
 
@@ -81,22 +142,22 @@ uint16_t psx_bus_read16(psx_bus_t* bus, uint32_t addr) {
         log_fatal("Unaligned 16-bit read from %08x:%08x", vaddr, addr);
     }
 
-    HANDLE_READ(bios, 16);
-    HANDLE_READ(ram, 16);
-    HANDLE_READ(dma, 16);
-    HANDLE_READ(exp1, 16);
-    HANDLE_READ(exp2, 16);
-    HANDLE_READ(mc1, 16);
-    HANDLE_READ(mc2, 16);
-    HANDLE_READ(mc3, 16);
-    HANDLE_READ(ic, 16);
-    HANDLE_READ(scratchpad, 16);
-    HANDLE_READ(gpu, 16);
-    HANDLE_READ(spu, 16);
-    HANDLE_READ(timer, 16);
-    HANDLE_READ(cdrom, 16);
-    HANDLE_READ(pad, 16);
-    HANDLE_READ(mdec, 16);
+    HANDLE_READ_OP(bios, psx_bios_read16);
+    HANDLE_READ_OP(ram, psx_ram_read16);
+    HANDLE_READ_OP(dma, psx_dma_read16);
+    HANDLE_READ_OP(exp1, psx_exp1_read16);
+    HANDLE_READ_OP(exp2, psx_exp2_read16);
+    HANDLE_READ_OP(mc1, psx_mc1_read16);
+    HANDLE_READ_OP(mc2, psx_mc2_read16);
+    HANDLE_READ_OP(mc3, psx_mc3_read16);
+    HANDLE_READ_OP(ic, psx_ic_read16);
+    HANDLE_READ_OP(scratchpad, psx_scratchpad_read16);
+    HANDLE_READ_OP(gpu, psx_gpu_read16);
+    HANDLE_READ_OP(spu, psx_spu_read16);
+    HANDLE_READ_OP(timer, psx_timer_read16);
+    HANDLE_READ_OP(cdrom, psx_cdrom_read16);
+    HANDLE_READ_OP(pad, psx_pad_read16);
+    HANDLE_READ_OP(mdec, psx_mdec_read16);
 
     if (addr == 0x1f80105a)
         return sio_ctrl;
@@ -110,7 +171,7 @@ uint16_t psx_bus_read16(psx_bus_t* bus, uint32_t addr) {
     if (addr == 0x1f400006)
         return 0x1fe0;
 
-    printf("Unhandled 16-bit read from %08x:%08x\n", vaddr, addr);
+    print("Unhandled 16-bit read from %08x:%08x\n", vaddr, addr);
 
     // exit(1);
 
@@ -124,22 +185,22 @@ uint8_t psx_bus_read8(psx_bus_t* bus, uint32_t addr) {
 
     addr &= g_psx_bus_region_mask_table[addr >> 29];
 
-    HANDLE_READ(bios, 8);
-    HANDLE_READ(ram, 8);
-    HANDLE_READ(dma, 8);
-    HANDLE_READ(exp1, 8);
-    HANDLE_READ(exp2, 8);
-    HANDLE_READ(mc1, 8);
-    HANDLE_READ(mc2, 8);
-    HANDLE_READ(mc3, 8);
-    HANDLE_READ(ic, 8);
-    HANDLE_READ(scratchpad, 8);
-    HANDLE_READ(gpu, 8);
-    HANDLE_READ(spu, 8);
-    HANDLE_READ(timer, 8);
-    HANDLE_READ(cdrom, 8);
-    HANDLE_READ(pad, 8);
-    HANDLE_READ(mdec, 8);
+    HANDLE_READ_OP(bios, psx_bios_read8);
+    HANDLE_READ_OP(ram, psx_ram_read8);
+    HANDLE_READ_OP(dma, psx_dma_read8);
+    HANDLE_READ_OP(exp1, psx_exp1_read8);
+    HANDLE_READ_OP(exp2, psx_exp2_read8);
+    HANDLE_READ_OP(mc1, psx_mc1_read8);
+    HANDLE_READ_OP(mc2, psx_mc2_read8);
+    HANDLE_READ_OP(mc3, psx_mc3_read8);
+    HANDLE_READ_OP(ic, psx_ic_read8);
+    HANDLE_READ_OP(scratchpad, psx_scratchpad_read8);
+    HANDLE_READ_OP(gpu, psx_gpu_read8);
+    HANDLE_READ_OP(spu, psx_spu_read8);
+    HANDLE_READ_OP(timer, psx_timer_read8);
+    HANDLE_READ_OP(cdrom, psx_cdrom_read8);
+    HANDLE_READ_OP(pad, psx_pad_read8);
+    HANDLE_READ_OP(mdec, psx_mdec_read8);
 
     // printf("Unhandled 8-bit read from %08x:%08x\n", vaddr, addr);
 
@@ -159,24 +220,24 @@ void psx_bus_write32(psx_bus_t* bus, uint32_t addr, uint32_t value) {
         log_fatal("Unaligned 32-bit write to %08x:%08x (%08x)", vaddr, addr, value);
     }
 
-    HANDLE_WRITE(bios, 32);
-    HANDLE_WRITE(ram, 32);
-    HANDLE_WRITE(dma, 32);
-    HANDLE_WRITE(exp1, 32);
-    HANDLE_WRITE(exp2, 32);
-    HANDLE_WRITE(mc1, 32);
-    HANDLE_WRITE(mc2, 32);
-    HANDLE_WRITE(mc3, 32);
-    HANDLE_WRITE(ic, 32);
-    HANDLE_WRITE(scratchpad, 32);
-    HANDLE_WRITE(gpu, 32);
-    HANDLE_WRITE(spu, 32);
-    HANDLE_WRITE(timer, 32);
-    HANDLE_WRITE(cdrom, 32);
-    HANDLE_WRITE(pad, 32);
-    HANDLE_WRITE(mdec, 32);
+    HANDLE_WRITE_OP(bios, psx_bios_write32);
+    HANDLE_WRITE_OP(ram, psx_ram_write32);
+    HANDLE_WRITE_OP(dma, psx_dma_write32);
+    HANDLE_WRITE_OP(exp1, psx_exp1_write32);
+    HANDLE_WRITE_OP(exp2, psx_exp2_write32);
+    HANDLE_WRITE_OP(mc1, psx_mc1_write32);
+    HANDLE_WRITE_OP(mc2, psx_mc2_write32);
+    HANDLE_WRITE_OP(mc3, psx_mc3_write32);
+    HANDLE_WRITE_OP(ic, psx_ic_write32);
+    HANDLE_WRITE_OP(scratchpad, psx_scratchpad_write32);
+    HANDLE_WRITE_OP(gpu, psx_gpu_write32);
+    HANDLE_WRITE_OP(spu, psx_spu_write32);
+    HANDLE_WRITE_OP(timer, psx_timer_write32);
+    HANDLE_WRITE_OP(cdrom, psx_cdrom_write32);
+    HANDLE_WRITE_OP(pad, psx_pad_write32);
+    HANDLE_WRITE_OP(mdec, psx_mdec_write32);
 
-    printf("Unhandled 32-bit write to %08x:%08x (%08x)\n", vaddr, addr, value);
+    print("Unhandled 32-bit write to %08x:%08x (%08x)\n", vaddr, addr, value);
 
     //exit(1);
 }
@@ -193,26 +254,26 @@ void psx_bus_write16(psx_bus_t* bus, uint32_t addr, uint32_t value) {
         log_fatal("Unaligned 16-bit write to %08x:%08x (%04x)", vaddr, addr, value);
     }
 
-    HANDLE_WRITE(bios, 16);
-    HANDLE_WRITE(ram, 16);
-    HANDLE_WRITE(dma, 16);
-    HANDLE_WRITE(exp1, 16);
-    HANDLE_WRITE(exp2, 16);
-    HANDLE_WRITE(mc1, 16);
-    HANDLE_WRITE(mc2, 16);
-    HANDLE_WRITE(mc3, 16);
-    HANDLE_WRITE(ic, 16);
-    HANDLE_WRITE(scratchpad, 16);
-    HANDLE_WRITE(gpu, 16);
-    HANDLE_WRITE(spu, 16);
-    HANDLE_WRITE(timer, 16);
-    HANDLE_WRITE(cdrom, 16);
-    HANDLE_WRITE(pad, 16);
-    HANDLE_WRITE(mdec, 16);
+    HANDLE_WRITE_OP(bios, psx_bios_write16);
+    HANDLE_WRITE_OP(ram, psx_ram_write16);
+    HANDLE_WRITE_OP(dma, psx_dma_write16);
+    HANDLE_WRITE_OP(exp1, psx_exp1_write16);
+    HANDLE_WRITE_OP(exp2, psx_exp2_write16);
+    HANDLE_WRITE_OP(mc1, psx_mc1_write16);
+    HANDLE_WRITE_OP(mc2, psx_mc2_write16);
+    HANDLE_WRITE_OP(mc3, psx_mc3_write16);
+    HANDLE_WRITE_OP(ic, psx_ic_write16);
+    HANDLE_WRITE_OP(scratchpad, psx_scratchpad_write16);
+    HANDLE_WRITE_OP(gpu, psx_gpu_write16);
+    HANDLE_WRITE_OP(spu, psx_spu_write16);
+    HANDLE_WRITE_OP(timer, psx_timer_write16);
+    HANDLE_WRITE_OP(cdrom, psx_cdrom_write16);
+    HANDLE_WRITE_OP(pad, psx_pad_write16);
+    HANDLE_WRITE_OP(mdec, psx_mdec_write16);
 
     // if (addr == 0x1f80105a) { sio_ctrl = value; return; }
 
-    printf("Unhandled 16-bit write to %08x:%08x (%04x)\n", vaddr, addr, value);
+    print("Unhandled 16-bit write to %08x:%08x (%04x)\n", vaddr, addr, value);
 
     //exit(1);
 }
@@ -224,24 +285,24 @@ void psx_bus_write8(psx_bus_t* bus, uint32_t addr, uint32_t value) {
 
     addr &= g_psx_bus_region_mask_table[addr >> 29];
 
-    HANDLE_WRITE(bios, 8);
-    HANDLE_WRITE(ram, 8);
-    HANDLE_WRITE(dma, 8);
-    HANDLE_WRITE(exp1, 8);
-    HANDLE_WRITE(exp2, 8);
-    HANDLE_WRITE(mc1, 8);
-    HANDLE_WRITE(mc2, 8);
-    HANDLE_WRITE(mc3, 8);
-    HANDLE_WRITE(ic, 8);
-    HANDLE_WRITE(scratchpad, 8);
-    HANDLE_WRITE(gpu, 8);
-    HANDLE_WRITE(spu, 8);
-    HANDLE_WRITE(timer, 8);
-    HANDLE_WRITE(cdrom, 8);
-    HANDLE_WRITE(pad, 8);
-    HANDLE_WRITE(mdec, 8);
+    HANDLE_WRITE_OP(bios, psx_bios_write8);
+    HANDLE_WRITE_OP(ram, psx_ram_write8);
+    HANDLE_WRITE_OP(dma, psx_dma_write8);
+    HANDLE_WRITE_OP(exp1, psx_exp1_write8);
+    HANDLE_WRITE_OP(exp2, psx_exp2_write8);
+    HANDLE_WRITE_OP(mc1, psx_mc1_write8);
+    HANDLE_WRITE_OP(mc2, psx_mc2_write8);
+    HANDLE_WRITE_OP(mc3, psx_mc3_write8);
+    HANDLE_WRITE_OP(ic, psx_ic_write8);
+    HANDLE_WRITE_OP(scratchpad, psx_scratchpad_write8);
+    HANDLE_WRITE_OP(gpu, psx_gpu_write8);
+    HANDLE_WRITE_OP(spu, psx_spu_write8);
+    HANDLE_WRITE_OP(timer, psx_timer_write8);
+    HANDLE_WRITE_OP(cdrom, psx_cdrom_write8);
+    HANDLE_WRITE_OP(pad, psx_pad_write8);
+    HANDLE_WRITE_OP(mdec, psx_mdec_write8);
 
-    printf("Unhandled 8-bit write to %08x:%08x (%02x)\n", vaddr, addr, value);
+    print("Unhandled 8-bit write to %08x:%08x (%02x)\n", vaddr, addr, value);
 
     //exit(1);
 }
@@ -290,11 +351,11 @@ void psx_bus_init_gpu(psx_bus_t* bus, psx_gpu_t* gpu) {
     bus->gpu = gpu;
 }
 
-void psx_bus_init_spu(psx_bus_t* bus, psx_spu_t* spu) {
+void psx_bus_init_spu(psx_bus_t* bus, struct psx_spu_t* spu) {
     bus->spu = spu;
 }
 
-void psx_bus_init_timer(psx_bus_t* bus, psx_timer_t* timer) {
+void psx_bus_init_timer(psx_bus_t* bus, struct psx_timer_t* timer) {
     bus->timer = timer;
 }
 
@@ -302,11 +363,11 @@ void psx_bus_init_cdrom(psx_bus_t* bus, psx_cdrom_t* cdrom) {
     bus->cdrom = cdrom;
 }
 
-void psx_bus_init_pad(psx_bus_t* bus, psx_pad_t* pad) {
+void psx_bus_init_pad(psx_bus_t* bus, struct psx_pad_t* pad) {
     bus->pad = pad;
 }
 
-void psx_bus_init_mdec(psx_bus_t* bus, psx_mdec_t* mdec) {
+void psx_bus_init_mdec(psx_bus_t* bus, struct psx_mdec_t* mdec) {
     bus->mdec = mdec;
 }
 
@@ -318,5 +379,5 @@ uint32_t psx_bus_get_access_cycles(psx_bus_t* bus) {
     return cycles;
 }
 
-#undef HANDLE_READ
-#undef HANDLE_WRITE
+#undef HANDLE_READ_OP
+#undef HANDLE_WRITE_OP

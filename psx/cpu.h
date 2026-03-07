@@ -1,8 +1,7 @@
 #ifndef CPU_H
 #define CPU_H
 
-#include <stdint.h>
-#include <stdio.h>
+#include "p9.h"
 
 #include "bus.h"
 
@@ -228,8 +227,8 @@ void psx_cpu_init(psx_cpu_t*, psx_bus_t*);
 void psx_cpu_destroy(psx_cpu_t*);
 void psx_cpu_cycle(psx_cpu_t*);
 void psx_cpu_set_irq_pending(psx_cpu_t*);
-void psx_cpu_load_state(psx_cpu_t*, FILE*);
-void psx_cpu_save_state(psx_cpu_t*, FILE*);
+void psx_cpu_load_state(psx_cpu_t*, void*);
+void psx_cpu_save_state(psx_cpu_t*, void*);
 void psx_cpu_fetch(psx_cpu_t*);
 void psx_cpu_set_a_kcall_hook(psx_cpu_t*, psx_cpu_kcall_hook_t);
 void psx_cpu_set_b_kcall_hook(psx_cpu_t*, psx_cpu_kcall_hook_t);

@@ -1,4 +1,29 @@
 #include "psx.h"
+#include "dev/bios.h"
+#include "dev/ram.h"
+#include "dev/dma.h"
+#include "dev/exp1.h"
+#include "dev/exp2.h"
+#include "dev/mc1.h"
+#include "dev/mc2.h"
+#include "dev/mc3.h"
+#include "dev/ic.h"
+#include "dev/scratchpad.h"
+#include "dev/gpu.h"
+#include "dev/spu.h"
+#include "dev/timer.h"
+#include "dev/cdrom/cdrom.h"
+#include "dev/pad.h"
+#include "dev/mdec.h"
+
+/* Keep explicit prototypes for 6c in this TU. */
+psx_bios_t* psx_bios_create(void);
+void psx_bios_init(psx_bios_t*);
+int psx_bios_load(psx_bios_t*, const char*);
+void psx_bios_destroy(psx_bios_t*);
+psx_spu_t* psx_spu_create(void);
+void psx_spu_init(psx_spu_t*, psx_ic_t*);
+void psx_spu_destroy(psx_spu_t*);
 
 psx_t* psx_create(void) {
     return (psx_t*)malloc(sizeof(psx_t));
@@ -9,12 +34,16 @@ int psx_load_bios(psx_t* psx, const char* path) {
 }
 
 void psx_load_state(psx_t* psx, const char* path) {
+    USED(psx);
+    USED(path);
     log_fatal("State saving/loading is not yet supported");
 
     exit(1);
 }
 
 void psx_save_state(psx_t* psx, const char* path) {
+    USED(psx);
+    USED(path);
     log_fatal("State saving/loading is not yet supported");
 
     exit(1);
@@ -110,6 +139,7 @@ double psx_get_display_aspect(psx_t* psx) {
 }
 
 void atcons_tx(void* udata, unsigned char c) {
+    USED(udata);
     putchar(c);
 }
 
@@ -188,6 +218,7 @@ int psx_load_expansion(psx_t* psx, const char* path) {
 }
 
 void psx_hard_reset(psx_t* psx) {
+    USED(psx);
     log_fatal("Hard reset not yet implemented");
 
     exit(1);
@@ -198,9 +229,11 @@ void psx_soft_reset(psx_t* psx) {
 }
 
 uint32_t* psx_take_screenshot(psx_t* psx) {
+    USED(psx);
     log_fatal("Screenshots not yet supported");
 
     exit(1);
+    return nil;
 }
 
 int psx_swap_disc(psx_t* psx, const char* path) {

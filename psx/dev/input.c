@@ -1,10 +1,6 @@
-#ifndef PAD_H
-#define PAD_H
+#include "dev/input.h"
 
-#include "input.h"
-
-#include <string.h>
-#include <stdlib.h>
+#include "p9.h"
 
 psx_input_t* psx_input_create(void) {
     return (psx_input_t*)malloc(sizeof(psx_input_t));
@@ -34,9 +30,11 @@ void psx_input_set_on_analog_change_func(psx_input_t* input, psx_input_on_analog
     input->on_analog_change_func = on_analog_change_func;
 }
 
+void psx_input_set_query_fifo_func(psx_input_t* input, psx_input_query_fifo_t query_fifo_func) {
+    input->query_fifo_func = query_fifo_func;
+}
+
 void psx_input_destroy(psx_input_t* input) {
     free(input->udata);
     free(input);
 }
-
-#endif

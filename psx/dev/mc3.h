@@ -1,18 +1,20 @@
-#ifndef MC3_H
-#define MC3_H
+#ifndef PSX_DEV_MC3_H
+#define PSX_DEV_MC3_H
 
-#include <stdint.h>
+#include "p9.h"
 
 #define PSX_MC3_BEGIN 0xfffe0130
 #define PSX_MC3_SIZE  0x4
 #define PSX_MC3_END   0xfffe0133
 
-typedef struct {
+struct psx_mc3_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
     uint32_t cache_control;
-} psx_mc3_t;
+};
+
+typedef struct psx_mc3_t psx_mc3_t;
 
 psx_mc3_t* psx_mc3_create(void);
 void psx_mc3_init(psx_mc3_t*);

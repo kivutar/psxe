@@ -1,13 +1,14 @@
-#ifndef PAD_H
-#define PAD_H
+#ifndef PSX_DEV_PAD_H
+#define PSX_DEV_PAD_H
 
-#include <stdint.h>
+#include "p9.h"
 
-#include "ic.h"
-#include "input.h"
-#include "mcd.h"
+#include "dev/ic.h"
+#include "dev/input.h"
 
-#include "../input/sda.h"
+#include "input/sda.h"
+
+typedef struct psx_mcd_t psx_mcd_t;
 
 #define PSX_PAD_BEGIN 0x1f801040
 #define PSX_PAD_SIZE  0x10
@@ -103,7 +104,7 @@ enum {
     - _on_analog_change(id)
 */
 
-typedef struct {
+struct psx_pad_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
@@ -118,7 +119,9 @@ typedef struct {
     int irq_bit;
 
     uint16_t mode, ctrl, baud, stat;
-} psx_pad_t;
+};
+
+typedef struct psx_pad_t psx_pad_t;
 
 psx_pad_t* psx_pad_create(void);
 void psx_pad_init(psx_pad_t*, psx_ic_t*);

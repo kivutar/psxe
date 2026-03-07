@@ -1,7 +1,7 @@
-#ifndef LIST_H
-#define LIST_H
+#ifndef PSX_DEV_LIST_H
+#define PSX_DEV_LIST_H
 
-#include <stddef.h>
+#include "p9.h"
 
 typedef struct node_t node_t;
 

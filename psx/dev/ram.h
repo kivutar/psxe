@@ -1,10 +1,11 @@
-#ifndef RAM_H
-#define RAM_H
+#ifndef PSX_DEV_RAM_H
+#define PSX_DEV_RAM_H
 
-#include <stdint.h>
+#include "p9.h"
 
-#include "../log.h"
-#include "mc2.h"
+#include "log.h"
+
+typedef struct psx_mc2_t psx_mc2_t;
 
 #define PSX_RAM_SIZE    0x800000 // 8MB window
 #define PSX_RAM_BEGIN   0x00000000
@@ -16,16 +17,18 @@
 #define RAM_SIZE_4MB 0x400000
 #define RAM_SIZE_8MB 0x800000
 
-typedef struct {
+struct psx_ram_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
-    size_t size;
+    uintptr size;
 
     psx_mc2_t* mc2;
 
     uint8_t* buf;
-} psx_ram_t;
+};
+
+typedef struct psx_ram_t psx_ram_t;
 
 psx_ram_t* psx_ram_create(void);
 void psx_ram_init(psx_ram_t*, psx_mc2_t*, int size);

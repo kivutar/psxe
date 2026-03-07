@@ -1,9 +1,8 @@
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
-#include "pad.h"
-#include "../log.h"
+#include "dev/pad.h"
+#include "dev/mcd.h"
+#include "log.h"
 
 #define JOY_IRQ_DELAY 512
 
@@ -186,10 +185,6 @@ uint16_t psx_pad_read16(psx_pad_t* pad, uint32_t offset) {
     }
 
     return v;
-
-    printf("Unhandled 16-bit PAD read at offset %08x", offset);
-
-    return 0x0;
 }
 
 uint8_t psx_pad_read8(psx_pad_t* pad, uint32_t offset) {
@@ -293,12 +288,6 @@ void psx_pad_detach_joy(psx_pad_t* pad, int slot) {
 }
 
 int psx_pad_attach_mcd(psx_pad_t* pad, int slot, const char* path) {
-
-#if 0
-    printf("Memory Card support is disabled\n");
-
-    return 0;
-#endif
     if (pad->mcd_slot[slot])
         psx_pad_detach_mcd(pad, slot);
 

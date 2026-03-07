@@ -1,8 +1,6 @@
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include "p9.h"
 
-#include "queue.h"
+#include "dev/cdrom/queue.h"
 
 queue_t* queue_create(void) {
     return malloc(sizeof(queue_t));

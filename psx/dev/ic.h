@@ -1,9 +1,9 @@
-#ifndef IC_H
-#define IC_H
+#ifndef PSX_DEV_IC_H
+#define PSX_DEV_IC_H
 
-#include <stdint.h>
+#include "p9.h"
 
-#include "../cpu.h"
+#include "cpu.h"
 
 #define PSX_IC_BEGIN 0x1f801070
 #define PSX_IC_SIZE  0x8
@@ -43,7 +43,7 @@ enum {
     1F801074h 2    I_MASK - Interrupt mask register
 */
 
-typedef struct {
+struct psx_ic_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
@@ -51,7 +51,9 @@ typedef struct {
     uint16_t mask;
 
     psx_cpu_t* cpu;
-} psx_ic_t;
+};
+
+typedef struct psx_ic_t psx_ic_t;
 
 psx_ic_t* psx_ic_create(void);
 void psx_ic_init(psx_ic_t*, psx_cpu_t*);

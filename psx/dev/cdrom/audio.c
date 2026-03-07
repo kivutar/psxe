@@ -1,8 +1,8 @@
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
-#include "cdrom.h"
-#include "../spu.h"
+#include "dev/cdrom/cdrom.h"
+#include "dev/ic.h"
+#include "dev/spu.h"
 
 #define ITOB(b) itob_table[b]
 
@@ -95,19 +95,20 @@ void cdrom_decode_xa_block(psx_cdrom_t* cdrom, int idx, int blk, int nib, int16_
     for (int j = 0; j < 28; j++) {
         uint16_t n = (cdrom->xa_buf[idx + 16 + blk + j * 4] >> (nib * 4)) & 0x0f;
 
-        int16_t t = (int16_t)(n << 12) >> 12; 
-        int16_t s = (t << shift) + (((h[0] * f0) + (h[1] * f1) + 32) / 64);
+        int16_t t = (int16_t)(n << 12) >> 12;
+        int32_t s = (t << shift) + (((h[0] * f0) + (h[1] * f1) + 32) / 64);
 
         s = (s < INT16_MIN) ? INT16_MIN : ((s > INT16_MAX) ? INT16_MAX : s);
 
         h[1] = h[0];
-        h[0] = s;
+        h[0] = (int16_t)s;
 
-        buf[j] = s;
+        buf[j] = (int16_t)s;
     }
 }
 
 void cdrom_decode_xa_sector(psx_cdrom_t* cdrom, void* buf) {
+    USED(buf);
     int src = 24;
 
     int16_t left[28];
@@ -353,7 +354,7 @@ void cdrom_send_report_irq(psx_cdrom_t* cdrom) {
     int ss = (diff % (60 * 75)) / 75;
     int ff = (diff % (60 * 75)) % 75;
 
-    printf("report: track %u %02u:%02u:%02u relative=%d\n",
+    printf("report: track %d %02d:%02d:%02d relative=%d\n",
         track,
         mm, ss, ff,
         relative

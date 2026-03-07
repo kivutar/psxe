@@ -1,18 +1,20 @@
-#ifndef MC2_H
-#define MC2_H
+#ifndef PSX_DEV_MC2_H
+#define PSX_DEV_MC2_H
 
-#include <stdint.h>
+#include "p9.h"
 
 #define PSX_MC2_BEGIN 0x1f801060
 #define PSX_MC2_SIZE  0x4
 #define PSX_MC2_END   0x1F801063
 
-typedef struct {
+struct psx_mc2_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
     uint32_t ram_size;
-} psx_mc2_t;
+};
+
+typedef struct psx_mc2_t psx_mc2_t;
 
 psx_mc2_t* psx_mc2_create(void);
 void psx_mc2_init(psx_mc2_t*);

@@ -4,11 +4,10 @@
     Sony PlayStation Standard Digital/Analog Controller Emulator
 */
 
-#include "guncon.h"
-#include "../log.h"
+#include "input/guncon.h"
+#include "log.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
 const char* states[] = {
     "HIZ",
@@ -70,11 +69,10 @@ uint32_t psxi_guncon_read(void* udata) {
 }
 
 void psxi_guncon_write(void* udata, uint16_t data) {
-    psxi_guncon_t* guncon = (psxi_guncon_t*)udata;
+    USED(udata);
+    USED(data);
 
     // printf("guncon: write %02x\n", data);
-
-    (void)guncon;
 }
 
 void psxi_guncon_on_button_press(void* udata, uint32_t data) {

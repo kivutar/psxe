@@ -1,9 +1,7 @@
-#include <string.h>
-#include <assert.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include "p9.h"
 
-#include "cdrom.h"
+#include "dev/cdrom/cdrom.h"
+#include "dev/ic.h"
 
 typedef void (*cdrom_cmd_func)(psx_cdrom_t* cdrom);
 
@@ -671,7 +669,7 @@ void cdrom_write_cmd(psx_cdrom_t* cdrom, uint8_t data) {
     printf("cdrom: %-16s (%02x) params: ", cdrom_cmd_names[data], data);
 
     if (queue_is_empty(cdrom->parameters)) {
-        puts("(none)");
+        print("(none)\n");
 
         return;
     }
@@ -685,6 +683,8 @@ void cdrom_write_cmd(psx_cdrom_t* cdrom, uint8_t data) {
 }
 
 void cdrom_write_null(psx_cdrom_t* cdrom, uint8_t data) {
+    USED(cdrom);
+    USED(data);
     /* Ignore writes */
 }
 
@@ -739,14 +739,14 @@ void cdrom_write_vapp(psx_cdrom_t* cdrom, uint8_t data) {
 }
 
 uint32_t psx_cdrom_read32(psx_cdrom_t* cdrom, uint32_t addr) {
-    assert("32-bit CDROM reads are not supported" && 0);
-
-    return 0;
+    uint32_t v0 = psx_cdrom_read8(cdrom, addr);
+    uint32_t v1 = psx_cdrom_read8(cdrom, addr + 1);
+    uint32_t v2 = psx_cdrom_read8(cdrom, addr + 2);
+    uint32_t v3 = psx_cdrom_read8(cdrom, addr + 3);
+    return v0 | (v1 << 8) | (v2 << 16) | (v3 << 24);
 }
 
 uint32_t psx_cdrom_read16(psx_cdrom_t* cdrom, uint32_t addr) {
-    assert("16-bit CDROM reads are not supported" && 0);
-
     // The CDROM controller is connected to the SUB-BUS which is a 16-bit
     // bus, but the output from the controller itself is 8-bit. I think
     // 16-bit accesses are handled as a pair of 8-bit accesses
@@ -754,9 +754,13 @@ uint32_t psx_cdrom_read16(psx_cdrom_t* cdrom, uint32_t addr) {
 }
 
 void psx_cdrom_write32(psx_cdrom_t* cdrom, uint32_t addr, uint32_t value) {
-    assert("32-bit CDROM writes are not supported" && 0);
+    psx_cdrom_write8(cdrom, addr + 0, value & 0xff);
+    psx_cdrom_write8(cdrom, addr + 1, (value >> 8) & 0xff);
+    psx_cdrom_write8(cdrom, addr + 2, (value >> 16) & 0xff);
+    psx_cdrom_write8(cdrom, addr + 3, (value >> 24) & 0xff);
 }
 
 void psx_cdrom_write16(psx_cdrom_t* cdrom, uint32_t addr, uint32_t value) {
-    assert("16-bit CDROM writes are not supported" && 0);
+    psx_cdrom_write8(cdrom, addr + 0, value & 0xff);
+    psx_cdrom_write8(cdrom, addr + 1, (value >> 8) & 0xff);
 }

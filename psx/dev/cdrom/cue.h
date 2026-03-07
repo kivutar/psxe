@@ -1,12 +1,10 @@
-#ifndef CUE_H
-#define CUE_H
+#ifndef PSX_DEV_CUE_H
+#define PSX_DEV_CUE_H
 
-#include "list.h"
-#include "disc.h"
+#include "dev/cdrom/list.h"
+#include "dev/cdrom/disc.h"
 
-#include <stdint.h>
-#include <stddef.h>
-#include <stdio.h>
+#include "p9.h"
 
 enum {
     CUE_OK = 0,
@@ -79,7 +77,7 @@ typedef struct {
     list_t* files;
     list_t* tracks;
 
-    char c;
+    int c;
     FILE* file;
 } cue_t;
 

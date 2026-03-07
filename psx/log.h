@@ -5,13 +5,10 @@
  * under the terms of the MIT license. See `log.c` for details.
  */
 
-#ifndef LOG_H
-#define LOG_H
+#ifndef PSX_LOG_H
+#define PSX_LOG_H
 
-#include <stdio.h>
-#include <stdarg.h>
-#include <stdbool.h>
-#include <time.h>
+#include "p9.h"
 
 #define LOG_VERSION "0.1.0"
 
@@ -19,7 +16,7 @@ typedef struct {
   va_list ap;
   const char *fmt;
   const char *file;
-  struct tm *time;
+  Tm *time;
   void *udata;
   int line;
   int level;
@@ -42,7 +39,7 @@ void log_set_lock(log_LockFn fn, void *udata);
 void log_set_level(int level);
 void log_set_quiet(bool enable);
 int log_add_callback(log_LogFn fn, void *udata, int level);
-int log_add_fp(FILE *fp, int level);
+int log_add_fp(void *fp, int level);
 
 void log_log(int level, const char *file, int line, const char *fmt, ...);
 

@@ -1,7 +1,7 @@
-#ifndef DISC_H
-#define DISC_H
+#ifndef PSX_DEV_DISC_H
+#define PSX_DEV_DISC_H
 
-#include <stdint.h>
+#include "p9.h"
 
 /*
     PSX disc reader API version 2 specification:

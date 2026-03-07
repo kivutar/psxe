@@ -43,48 +43,31 @@ static const char *level_strings[] = {
   "trace", "debug", "info", "warn", "error", "fatal"
 };
 
-#ifdef LOG_USE_COLOR
-static const char *level_colors[] = {
-  "\x1b[94m", "\x1b[36m", "\x1b[32m", "\x1b[33m", "\x1b[31m", "\x1b[35m"
-};
-#endif
-
-
 static void stdout_callback(log_Event *ev) {
-#ifdef LOG_USE_COLOR
-  fprintf(
-    ev->udata, "psx: %s%-5s\x1b[0m \x1b[90m%s:\x1b[0m ",
-    level_colors[ev->level], level_strings[ev->level],
-    ev->file);
-#else
-  fprintf(
-    ev->udata, "psx: %-5s %s: ",
-    level_strings[ev->level], ev->file);
-#endif
-  vfprintf(ev->udata, ev->fmt, ev->ap);
-  fprintf(ev->udata, "\n");
-  fflush(ev->udata);
+  char *msg = vsmprint(ev->fmt, ev->ap);
+
+  if (!msg) {
+    msg = smprint("%s", ev->fmt);
+  }
+
+  if (msg) {
+    print("psx: %-5s %s:%d: %s\n",
+      level_strings[ev->level], ev->file, ev->line, msg);
+    free(msg);
+    return;
+  }
+
+  print("psx: %-5s %s:%d\n",
+    level_strings[ev->level], ev->file, ev->line);
 }
 
 
-static void file_callback(log_Event *ev) {
-  char buf[64];
-  buf[strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", ev->time)] = '\0';
-  fprintf(
-    ev->udata, "%s %-5s %s:%d: ",
-    buf, level_strings[ev->level], ev->file, ev->line);
-  vfprintf(ev->udata, ev->fmt, ev->ap);
-  fprintf(ev->udata, "\n");
-  fflush(ev->udata);
-}
-
-
-static void lock(void)   {
+static void log_lock(void)   {
   if (L.lock) { L.lock(true, L.udata); }
 }
 
 
-static void unlock(void) {
+static void log_unlock(void) {
   if (L.lock) { L.lock(false, L.udata); }
 }
 
@@ -121,15 +104,17 @@ int log_add_callback(log_LogFn fn, void *udata, int level) {
 }
 
 
-int log_add_fp(FILE *fp, int level) {
-  return log_add_callback(file_callback, fp, level);
+int log_add_fp(void *fp, int level) {
+  USED(fp);
+  USED(level);
+  return -1;
 }
 
 
 static void init_event(log_Event *ev, void *udata) {
   if (!ev->time) {
-    time_t t = time(NULL);
-    ev->time = localtime(&t);
+    long t = time(0);
+    ev->time = localtime(t);
   }
   ev->udata = udata;
 }
@@ -143,10 +128,10 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
     .level = level,
   };
 
-  lock();
+  log_lock();
 
   if (!L.quiet && level >= L.level) {
-    init_event(&ev, stderr);
+    init_event(&ev, nil);
     va_start(ev.ap, fmt);
     stdout_callback(&ev);
     va_end(ev.ap);
@@ -162,5 +147,5 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
     }
   }
 
-  unlock();
+  log_unlock();
 }

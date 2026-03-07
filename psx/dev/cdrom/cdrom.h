@@ -1,11 +1,12 @@
-#ifndef CDROM_H
-#define CDROM_H
+#ifndef PSX_DEV_CDROM_H
+#define PSX_DEV_CDROM_H
 
-#include <stdint.h>
+#include "p9.h"
 
-#include "queue.h"
-#include "disc.h"
-#include "../ic.h"
+#include "dev/cdrom/queue.h"
+#include "dev/cdrom/disc.h"
+
+typedef struct psx_ic_t psx_ic_t;
 
 #define PSX_CDROM_BEGIN 0x1f801800
 #define PSX_CDROM_END   0x1f801803
@@ -200,7 +201,7 @@ enum {
     QUERY_TRACK_TYPE
 };
 
-typedef struct {
+struct psx_cdrom_t {
     int mute;
     uint32_t bus_delay;
     uint32_t io_base, io_size;
@@ -257,7 +258,9 @@ typedef struct {
     int16_t xa_left_resample_buf[XA_STEREO_RESAMPLE_MAX_SIZE];
     int16_t xa_right_resample_buf[XA_STEREO_RESAMPLE_MAX_SIZE];
     int16_t xa_mono_resample_buf[XA_MONO_RESAMPLE_MAX_SIZE];
-} psx_cdrom_t;
+};
+
+typedef struct psx_cdrom_t psx_cdrom_t;
 
 enum {
     CDR_VERSION_01,  // DTL-H2000                 (??-???-????)

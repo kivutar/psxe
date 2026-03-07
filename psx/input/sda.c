@@ -4,11 +4,10 @@
     Sony PlayStation Standard Digital/Analog Controller Emulator
 */
 
-#include "sda.h"
-#include "../log.h"
+#include "input/sda.h"
+#include "log.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include "p9.h"
 
 psxi_sda_t* psxi_sda_create(void) {
     return (psxi_sda_t*)malloc(sizeof(psxi_sda_t));

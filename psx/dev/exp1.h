@@ -1,21 +1,23 @@
-#ifndef EXP1_H
-#define EXP1_H
+#ifndef PSX_DEV_EXP1_H
+#define PSX_DEV_EXP1_H
 
-#include <stdint.h>
+#include "p9.h"
 
-#include "mc1.h"
+#include "dev/mc1.h"
 
 #define PSX_EXP1_BEGIN 0x1f000000
 #define PSX_EXP1_SIZE  0x80000
 #define PSX_EXP1_END   0x1f080000
 
-typedef struct {
+struct psx_exp1_t {
     uint32_t bus_delay;
     uint32_t io_base, io_size;
 
     psx_mc1_t* mc1;
     uint8_t* rom;
-} psx_exp1_t;
+};
+
+typedef struct psx_exp1_t psx_exp1_t;
 
 psx_exp1_t* psx_exp1_create(void);
 int psx_exp1_init(psx_exp1_t*, psx_mc1_t*, const char*);

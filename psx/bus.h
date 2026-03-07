@@ -1,7 +1,7 @@
 #ifndef BUS_H
 #define BUS_H
 
-#include <stdint.h>
+#include "p9.h"
 
 struct psx_bus_t;
 
