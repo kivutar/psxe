@@ -202,9 +202,10 @@ enum {
 };
 
 struct psx_cdrom_t {
-    int mute;
+    /* Must stay first: bus_probe() reads these via common iomap layout. */
     uint32_t bus_delay;
     uint32_t io_base, io_size;
+    int mute;
     psx_disc_t* disc;
     psx_ic_t* ic;
     int disc_type;

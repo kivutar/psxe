@@ -58,5 +58,7 @@ int psx_pad_attach_mcd(psx_pad_t*, int, const char*);
 psx_spu_t* psx_spu_create(void);
 void psx_spu_init(psx_spu_t*, psx_ic_t*);
 void psx_spu_destroy(psx_spu_t*);
+void psx_spu_update_cdda_buffer(psx_spu_t*, void*);
+uint32_t psx_spu_get_sample(psx_spu_t*);
 
 #endif

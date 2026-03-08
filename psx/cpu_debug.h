@@ -324,7 +324,7 @@ static const char* g_psx_cpu_c_kcall_symtable[] = {
     log_trace("%08x: %-7s $%s, $%s, 0x%04x", cpu->pc-8, m, g_mips_cc_register_names[T], g_mips_cc_register_names[S], IMM16)
 
 #define TRACE_I5D(m) \
-    log_trace("%08x: %-7s $%s, $%s, %u", cpu->pc-8, m, g_mips_cc_register_names[D], g_mips_cc_register_names[T], IMM5)
+    log_trace("%08x: %-7s $%s, $%s, %d", cpu->pc-8, m, g_mips_cc_register_names[D], g_mips_cc_register_names[T], IMM5)
 
 #define TRACE_I26(m) \
     log_trace("%08x: %-7s 0x%07x", cpu->pc-8, m, ((cpu->pc & 0xf0000000) | (IMM26 << 2)))
@@ -336,10 +336,10 @@ static const char* g_psx_cpu_c_kcall_symtable[] = {
     log_trace("%08x: %-7s $%s, $%s", cpu->pc-8, m, g_mips_cc_register_names[T], g_mips_cop0_register_names[D])
 
 #define TRACE_C2M(m) \
-    log_trace("%08x: %-7s $%s, $cop2_r%u", cpu->pc-8, m, g_mips_cc_register_names[T], D)
+    log_trace("%08x: %-7s $%s, $cop2_r%d", cpu->pc-8, m, g_mips_cc_register_names[T], D)
 
 #define TRACE_C2MC(m) \
-    log_trace("%08x: %-7s $%s, $cop2_r%u", cpu->pc-8, m, g_mips_cc_register_names[T], D + 32)
+    log_trace("%08x: %-7s $%s, $cop2_r%d", cpu->pc-8, m, g_mips_cc_register_names[T], D + 32)
 
 #define TRACE_B(m) \
     log_trace("%08x: %-7s $%s, $%s, %-i", cpu->pc-8, m, g_mips_cc_register_names[S], g_mips_cc_register_names[T], IMM16S << 2)

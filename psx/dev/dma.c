@@ -29,7 +29,39 @@ const psx_dma_do_fn_t g_psx_dma_do_table[] = {
     psx_dma_do_otc
 };
 
-#define CR(c, r) *((&dma->mdec_in.madr) + (c * 3) + r)
+static dma_channel_t*
+dma_get_channel(psx_dma_t* dma, int channel) {
+    switch (channel) {
+        case 0: return &dma->mdec_in;
+        case 1: return &dma->mdec_out;
+        case 2: return &dma->gpu;
+        case 3: return &dma->cdrom;
+        case 4: return &dma->spu;
+        case 5: return &dma->pio;
+        case 6: return &dma->otc;
+        default: return nil;
+    }
+}
+
+static uint32_t
+dma_read_channel_reg(dma_channel_t* ch, int reg) {
+    switch (reg) {
+        case 0: return ch->madr;
+        case 1: return ch->bcr;
+        case 2: return ch->chcr;
+        default: return 0;
+    }
+}
+
+static int
+dma_write_channel_reg(dma_channel_t* ch, int reg, uint32_t value) {
+    switch (reg) {
+        case 0: ch->madr = value; return 0;
+        case 1: ch->bcr = value; return 0;
+        case 2: ch->chcr = value; return 0;
+        default: return -1;
+    }
+}
 
 void psx_dma_init(psx_dma_t* dma, psx_bus_t* bus, psx_ic_t* ic) {
     memset(dma, 0, sizeof(psx_dma_t));
@@ -45,16 +77,26 @@ void psx_dma_init(psx_dma_t* dma, psx_bus_t* bus, psx_ic_t* ic) {
 
 uint32_t psx_dma_read32(psx_dma_t* dma, uint32_t offset) {
     if (offset < 0x70) {
+        dma_channel_t* ch;
         int channel = (offset >> 4) & 0x7;
         int reg = (offset >> 2) & 0x3;
-        uint32_t cr = CR(channel, reg);
+        uint32_t cr;
+
+        ch = dma_get_channel(dma, channel);
+
+        if (!ch) {
+            log_error("Unhandled DMA channel %d register %d (%08x) read", channel, reg, PSX_DMAR_BEGIN + offset);
+            return 0x0;
+        }
+
+        cr = dma_read_channel_reg(ch, reg);
 
         if (reg == 2) {
             cr |= g_psx_dma_ctrl_hw_1_table[channel];
             cr &= g_psx_dma_ctrl_hw_0_table[channel];
         }
 
-        log_error("DMA channel %u register %u (%08x) read %08x", channel, reg, PSX_DMAR_BEGIN + offset, cr);
+        log_error("DMA channel %d register %d (%08x) read %08x", channel, reg, PSX_DMAR_BEGIN + offset, cr);
         
         return cr;
     } else {
@@ -115,12 +157,23 @@ void dma_write_dicr(psx_dma_t* dma, uint32_t value) {
 
 void psx_dma_write32(psx_dma_t* dma, uint32_t offset, uint32_t value) {
     if (offset < 0x70) {
+        dma_channel_t* ch;
         int channel = (offset >> 4) & 0x7;
         int reg = (offset >> 2) & 0x3;
 
-        CR(channel, reg) = value;
+        ch = dma_get_channel(dma, channel);
 
-        log_error("DMA channel %u register %u write (%08x) %08x", channel, reg, PSX_DMAR_BEGIN + offset, value);
+        if (!ch) {
+            log_error("Unhandled DMA channel %d register %d write (%08x) %08x", channel, reg, PSX_DMAR_BEGIN + offset, value);
+            return;
+        }
+
+        if (dma_write_channel_reg(ch, reg, value)) {
+            log_error("Unhandled DMA channel %d register %d write (%08x) %08x", channel, reg, PSX_DMAR_BEGIN + offset, value);
+            return;
+        }
+
+        log_error("DMA channel %d register %d write (%08x) %08x", channel, reg, PSX_DMAR_BEGIN + offset, value);
 
         if (reg == 2)
             g_psx_dma_do_table[channel](dma);

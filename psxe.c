@@ -2,6 +2,21 @@
 #include "fns.h"
 
 Emu emu;
+static int audfd = -1;
+static s16int audbuf[735 * 2];
+static int needflush;
+
+static int
+fileexists(char *path)
+{
+	int fd;
+
+	fd = open(path, OREAD);
+	if(fd < 0)
+		return 0;
+	close(fd);
+	return 1;
+}
 
 static u32int
 bgr555toxrgb32(u16int c)
@@ -146,7 +161,56 @@ blitframe(void)
 int
 audioout(void)
 {
-	return -1;
+	psx_cdrom_t *cdrom;
+	psx_spu_t *spu;
+	int i;
+	int nsamp;
+
+	if(emu.psx == nil)
+		return -1;
+	if(audfd < 0){
+		audfd = open("/dev/audio", OWRITE);
+		if(audfd < 0)
+			return -1;
+	}
+
+	cdrom = psx_get_cdrom(emu.psx);
+	spu = psx_get_spu(emu.psx);
+	nsamp = nelem(audbuf) / 2;
+
+	memset(audbuf, 0, sizeof audbuf);
+	psx_cdrom_get_audio_samples(cdrom, audbuf, sizeof audbuf);
+	psx_spu_update_cdda_buffer(spu, cdrom->cdda_buf);
+
+	for(i = 0; i < nsamp; i++){
+		u32int sample;
+		int l, r;
+
+		sample = psx_spu_get_sample(spu);
+
+		l = audbuf[i * 2 + 0] + (s16int)(sample & 0xffff);
+		r = audbuf[i * 2 + 1] + (s16int)(sample >> 16);
+
+		if(l > 32767)
+			l = 32767;
+		else if(l < -32768)
+			l = -32768;
+		if(r > 32767)
+			r = 32767;
+		else if(r < -32768)
+			r = -32768;
+
+		audbuf[i * 2 + 0] = l;
+		audbuf[i * 2 + 1] = r;
+	}
+
+	if(warp10)
+		return 0;
+
+	if(write(audfd, audbuf, sizeof audbuf) < 0)
+		return -1;
+
+	return 0;
 }
 
 void
@@ -160,15 +224,15 @@ flush(void)
 void
 psxe_gpu_vblank_event_cb(psx_gpu_t *gpu)
 {
-	blitframe();
-	flush();
+	USED(gpu);
+	needflush = 1;
 	psxe_gpu_vblank_timer_event_cb(gpu);
 }
 
 void
 usage(void)
 {
-	fprint(2, "usage: %s [-x scale] [-e expansion] bios [disc]\n", argv0);
+	print("usage: %s [-x scale] [-e expansion] bios [disc]\n", argv0);
 	exits("usage");
 }
 
@@ -218,7 +282,7 @@ threadmain(int argc, char **argv)
 	emu.pad = psx_get_pad(emu.psx);
 
 	if(disc != nil && !psx_cdrom_open(psx_get_cdrom(emu.psx), disc))
-		fprint(2, "warning: cannot open disc %s\n", disc);
+		print("warning: cannot open disc %s\n", disc);
 
 	input = psx_input_create();
 	psx_input_init(input);
@@ -228,8 +292,14 @@ threadmain(int argc, char **argv)
 	psxi_sda_init_input(controller, input);
 
 	psx_pad_attach_joy(emu.pad, 0, input);
-	psx_pad_attach_mcd(emu.pad, 0, "slot1.mcd");
-	psx_pad_attach_mcd(emu.pad, 1, "slot2.mcd");
+	if(fileexists("slot1.mcd"))
+		psx_pad_attach_mcd(emu.pad, 0, "slot1.mcd");
+	else
+		print("warning: slot1.mcd not found, memory card 1 disabled\n");
+	if(fileexists("slot2.mcd"))
+		psx_pad_attach_mcd(emu.pad, 1, "slot2.mcd");
+	else
+		print("warning: slot2.mcd not found, memory card 2 disabled\n");
 
 	gpu = psx_get_gpu(emu.psx);
 
@@ -250,5 +320,10 @@ threadmain(int argc, char **argv)
 		}
 		process_inputs();
 		psx_update(emu.psx);
+		if(needflush){
+			needflush = 0;
+			blitframe();
+			flush();
+		}
 	}
 }
