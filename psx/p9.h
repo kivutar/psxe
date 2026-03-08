@@ -255,28 +255,8 @@ p9_isspace(int c)
 #define __attribute__(x)
 #endif
 
-/* 6c may provide __FILE/__LINE (without trailing underscores). */
-#ifndef __FILE__
-#ifdef __FILE
-#define __FILE__ __FILE
-#else
 #define __FILE__ "unknown"
-#endif
-#endif
-#ifndef __LINE__
-#ifdef __LINE
-#define __LINE__ __LINE
-#else
 #define __LINE__ 0
-#endif
-#endif
-
-/* Some toolchains do not accept the C99 inline keyword. */
-#ifndef __GNUC__
-#ifndef inline
-#define inline
-#endif
-#endif
 
 /* Minimal assert replacement for native headers. */
 #ifndef assert
@@ -326,24 +306,11 @@ p9_builtin_clz(unsigned int x)
 #define __builtin_clz(x) p9_builtin_clz((unsigned int)(x))
 #endif
 
-/* stdint limit macros used in the codebase. */
-#ifndef INT8_MIN
 #define INT8_MIN (-128)
-#endif
-#ifndef INT8_MAX
 #define INT8_MAX 127
-#endif
-#ifndef INT16_MIN
 #define INT16_MIN (-32768)
-#endif
-#ifndef INT16_MAX
 #define INT16_MAX 32767
-#endif
-#ifndef INT32_MIN
 #define INT32_MIN (-2147483647 - 1)
-#endif
-#ifndef INT32_MAX
 #define INT32_MAX 2147483647
-#endif
 
 #endif
