@@ -3,8 +3,7 @@
 BIN=/$objtype/bin/games
 TARG=psxe
 CFLAGS=$CFLAGS -I. -Ipsx
-# 9front: suppress object type-signature conflicts during link.
-LD=6l -S
+LD=$LD -S
 
 HFILES=\
 	dat.h\
