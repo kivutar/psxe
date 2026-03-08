@@ -13,6 +13,7 @@ test/
 bios/
 roms/
 snap/
+log
 *.BIN
 *.bin
 *.dll
