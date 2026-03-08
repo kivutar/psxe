@@ -4,7 +4,6 @@
 #include <u.h>
 #include <libc.h>
 
-/* C99 integer aliases mapped to native 9front integer types. */
 typedef u8int uint8_t;
 typedef u16int uint16_t;
 typedef u32int uint32_t;
@@ -16,28 +15,14 @@ typedef s64int int64_t;
 typedef intptr intptr_t;
 typedef uintptr uintptr_t;
 
-/* stddef-like aliases used across the core. */
-#ifndef _SIZE_T
 typedef uintptr size_t;
-#define _SIZE_T
-#endif
-#ifndef _SSIZE_T
 typedef intptr ssize_t;
-#define _SSIZE_T
-#endif
 
-/* stdbool compatibility for native toolchains without <stdbool.h>. */
-#ifndef __bool_true_false_are_defined
 typedef int bool;
 #define true 1
 #define false 0
-#define __bool_true_false_are_defined 1
-#endif
 
-/* Plan 9 uses `nil`; keep NULL-compatible call sites building. */
-#ifndef NULL
-#define NULL 0
-#endif
+#define NULL nil
 
 /* Minimal libc naming shims for native Plan 9 builds. */
 #ifndef printf
