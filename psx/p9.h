@@ -24,48 +24,30 @@ typedef int bool;
 
 #define NULL nil
 
-/* Minimal libc naming shims for native Plan 9 builds. */
-#ifndef printf
 #define printf print
-#endif
-#ifndef putchar
-static inline int
-p9_putchar(int c)
+
+static int
+putchar(int c)
 {
 	return print("%c", c);
 }
-#define putchar(c) p9_putchar((c))
-#endif
-#ifndef exit
-static inline void
-p9_exit(int status)
+
+static void
+exit(int status)
 {
 	exits(status ? "error" : nil);
 }
-#define exit(status) p9_exit((status))
-#endif
 
-/* Minimal stdio compatibility for code still using FILE*. */
-#ifndef SEEK_SET
 #define SEEK_SET 0
-#endif
-#ifndef SEEK_CUR
 #define SEEK_CUR 1
-#endif
-#ifndef SEEK_END
 #define SEEK_END 2
-#endif
-#ifndef EOF
 #define EOF (-1)
-#endif
 
-#ifndef _P9_FILE_COMPAT
-#define _P9_FILE_COMPAT
 typedef struct p9_file {
 	int fd;
 } FILE;
 
-static inline FILE*
+static FILE*
 fopen(const char *path, const char *mode)
 {
 	int fd;
@@ -117,7 +99,7 @@ fopen(const char *path, const char *mode)
 	return fp;
 }
 
-static inline int
+static int
 fclose(FILE *fp)
 {
 	int r;
@@ -130,7 +112,7 @@ fclose(FILE *fp)
 	return r;
 }
 
-static inline int
+static int
 fseek(FILE *fp, long offset, int whence)
 {
 	if (!fp)
@@ -139,7 +121,7 @@ fseek(FILE *fp, long offset, int whence)
 	return seek(fp->fd, offset, whence) < 0 ? -1 : 0;
 }
 
-static inline long
+static long
 ftell(FILE *fp)
 {
 	vlong pos;
@@ -154,7 +136,7 @@ ftell(FILE *fp)
 	return (long)pos;
 }
 
-static inline size_t
+static size_t
 fread(void *ptr, size_t size, size_t nmemb, FILE *fp)
 {
 	size_t total;
@@ -180,7 +162,7 @@ fread(void *ptr, size_t size, size_t nmemb, FILE *fp)
 	return done / size;
 }
 
-static inline size_t
+static size_t
 fwrite(const void *ptr, size_t size, size_t nmemb, FILE *fp)
 {
 	size_t total;
@@ -206,7 +188,7 @@ fwrite(const void *ptr, size_t size, size_t nmemb, FILE *fp)
 	return done / size;
 }
 
-static inline int
+static int
 fgetc(FILE *fp)
 {
 	uchar c;
@@ -221,73 +203,44 @@ fgetc(FILE *fp)
 
 	return (int)c;
 }
-#endif
 
-#ifndef isdigit
-static inline int
-p9_isdigit(int c)
+static int
+isdigit(int c)
 {
 	return c >= '0' && c <= '9';
 }
-#define isdigit(c) p9_isdigit((c))
-#endif
 
-#ifndef isalpha
-static inline int
-p9_isalpha(int c)
+static int
+isalpha(int c)
 {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
 }
-#define isalpha(c) p9_isalpha((c))
-#endif
 
-#ifndef isspace
-static inline int
-p9_isspace(int c)
+static int
+isspace(int c)
 {
 	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v';
 }
-#define isspace(c) p9_isspace((c))
-#endif
 
-/* GCC attributes are ignored by native 9front compilers. */
-#ifndef __attribute__
 #define __attribute__(x)
-#endif
 
 #define __FILE__ "unknown"
 #define __LINE__ 0
 
-/* Minimal assert replacement for native headers. */
-#ifndef assert
-#define assert(x) do { \
-  if (!(x)) sysfatal("assert failed: %s:%d: %s", __FILE__, __LINE__, #x); \
-} while (0)
-#endif
-
-/* Helpers for codepaths that expect C99 float math helpers. */
-#ifndef floorf
 #define floorf(x) ((float)floor((double)(x)))
-#endif
-#ifndef ceilf
 #define ceilf(x) ((float)ceil((double)(x)))
-#endif
-#ifndef roundf
 #define roundf(x) ((float)(((x) >= 0) ? floor((double)(x) + 0.5) : ceil((double)(x) - 0.5)))
-#endif
 
-/* GCC builtin compatibility shims used by the CPU core. */
-#ifndef __GNUC__
-static inline int
-p9_builtin_ssub_overflow(int a, int b, int *r)
+static int
+__builtin_ssub_overflow(int a, int b, int *r)
 {
   vlong v = (vlong)a - (vlong)b;
   *r = (int)v;
   return (v > 2147483647LL) || (v < -2147483648LL);
 }
 
-static inline int
-p9_builtin_clz(unsigned int x)
+static int
+__builtin_clz(unsigned int x)
 {
   int n = 0;
 
@@ -301,10 +254,6 @@ p9_builtin_clz(unsigned int x)
 
   return n;
 }
-
-#define __builtin_ssub_overflow(a, b, r) p9_builtin_ssub_overflow((a), (b), (r))
-#define __builtin_clz(x) p9_builtin_clz((unsigned int)(x))
-#endif
 
 #define INT8_MIN (-128)
 #define INT8_MAX 127
