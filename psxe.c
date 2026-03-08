@@ -99,11 +99,11 @@ bindkeys(void)
 void
 blitframe(void)
 {
-	u32int *dst, *drow;
+	u32int *dst, *drow, *drow2;
 	u16int *s16, *row16;
 	uchar *s8, *row8;
 	void *src;
-	int fmt, sw, sh, dx, dy, x, y;
+	int fmt, sw, sh, src_w, src_h, dw, dh, scale2x, dx, dy, x, y;
 
 	if(emu.psx == nil)
 		return;
@@ -119,13 +119,38 @@ blitframe(void)
 	if(sw <= 0 || sh <= 0)
 		return;
 
-	if(sw > Vwdx)
-		sw = Vwdx;
-	if(sh > Vwdy)
-		sh = Vwdy;
+	/* Scale 240-line modes by 2x (nearest-neighbor) to avoid size jumps. */
+	scale2x = (sh == 240);
+	src_w = sw;
+	src_h = sh;
+	dw = sw;
+	dh = sh;
 
-	dx = (Vwdx - sw) / 2;
-	dy = (Vwdy - sh) / 2;
+	if(scale2x){
+		dw = sw * 2;
+		dh = sh * 2;
+	}
+
+	if(dw > Vwdx)
+		dw = Vwdx;
+	if(dh > Vwdy)
+		dh = Vwdy;
+
+	if(scale2x){
+		dw &= ~1;
+		dh &= ~1;
+		src_w = dw / 2;
+		src_h = dh / 2;
+	}else{
+		src_w = dw;
+		src_h = dh;
+	}
+
+	if(src_w <= 0 || src_h <= 0)
+		return;
+
+	dx = (Vwdx - dw) / 2;
+	dy = (Vwdy - dh) / 2;
 
 	memset(pic, 0, Vwdx * Vwdy * 4);
 
@@ -133,28 +158,59 @@ blitframe(void)
 
 	if(fmt != 0){
 		s8 = (uchar*)src;
-		for(y = 0; y < sh; y++){
+		for(y = 0; y < src_h; y++){
 			row8 = s8 + (y * PSX_GPU_FB_STRIDE);
-			drow = dst + ((dy + y) * Vwdx) + dx;
-			for(x = 0; x < sw; x++){
-				u32int b, g, r;
+			if(scale2x){
+				drow = dst + ((dy + (y * 2)) * Vwdx) + dx;
+				drow2 = drow + Vwdx;
+			}else{
+				drow = dst + ((dy + y) * Vwdx) + dx;
+				drow2 = nil;
+			}
+			for(x = 0; x < src_w; x++){
+				u32int c, b, g, r;
 
 				b = row8[(x * 3) + 0];
 				g = row8[(x * 3) + 1];
 				r = row8[(x * 3) + 2];
 
-				drow[x] = 0xff000000 | (r << 16) | (g << 8) | b;
+				c = 0xff000000 | (r << 16) | (g << 8) | b;
+				if(scale2x){
+					drow[(x * 2) + 0] = c;
+					drow[(x * 2) + 1] = c;
+					drow2[(x * 2) + 0] = c;
+					drow2[(x * 2) + 1] = c;
+				}else{
+					drow[x] = c;
+				}
 			}
 		}
 		return;
 	}
 
 	s16 = (u16int*)src;
-	for(y = 0; y < sh; y++){
+	for(y = 0; y < src_h; y++){
 		row16 = s16 + (y * PSX_GPU_FB_WIDTH);
-		drow = dst + ((dy + y) * Vwdx) + dx;
-		for(x = 0; x < sw; x++)
-			drow[x] = bgr555toxrgb32(row16[x]);
+		if(scale2x){
+			drow = dst + ((dy + (y * 2)) * Vwdx) + dx;
+			drow2 = drow + Vwdx;
+		}else{
+			drow = dst + ((dy + y) * Vwdx) + dx;
+			drow2 = nil;
+		}
+		for(x = 0; x < src_w; x++){
+			u32int c;
+
+			c = bgr555toxrgb32(row16[x]);
+			if(scale2x){
+				drow[(x * 2) + 0] = c;
+				drow[(x * 2) + 1] = c;
+				drow2[(x * 2) + 0] = c;
+				drow2[(x * 2) + 1] = c;
+			}else{
+				drow[x] = c;
+			}
+		}
 	}
 }
 
