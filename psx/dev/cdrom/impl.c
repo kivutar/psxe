@@ -179,7 +179,7 @@ void cdrom_cmd_play(psx_cdrom_t* cdrom) {
     int ss = (cdrom->lba % (60 * 75)) / 75;
     int ff = (cdrom->lba % (60 * 75)) % 75;
 
-    printf("play song at lba=%08x %02u:%02u:%02u track=%d\n", cdrom->lba, mm, ss, ff, track);
+    printf("play song at lba=%08x %02d:%02d:%02d track=%d\n", cdrom->lba, mm, ss, ff, track);
 
     cdrom->prev_state = CD_STATE_PLAY;
     cdrom->state = CD_STATE_PLAY;
@@ -706,11 +706,12 @@ void cdrom_cmd_reads(psx_cdrom_t* cdrom) {
 }
 
 void cdrom_cmd_reset(psx_cdrom_t* cdrom) {
+    USED(cdrom);
     printf("reset\n");
 }
 
 void cdrom_cmd_getq(psx_cdrom_t* cdrom) {
-
+    USED(cdrom);
 }
 
 void cdrom_cmd_readtoc(psx_cdrom_t* cdrom) {
@@ -731,5 +732,5 @@ void cdrom_cmd_readtoc(psx_cdrom_t* cdrom) {
 }
 
 void cdrom_cmd_videocd(psx_cdrom_t* cdrom) {
-
+    USED(cdrom);
 }

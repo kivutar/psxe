@@ -35,6 +35,14 @@ typedef struct psx_t {
     psx_mdec_t* mdec;
 } psx_t;
 
+/*
+ * 9front/6c: keep these SPU lifecycle declarations in the core umbrella header.
+ * Do not move them back to a .c file; psx.c must always see these prototypes.
+ */
+psx_spu_t* psx_spu_create(void);
+void psx_spu_init(psx_spu_t*, psx_ic_t*);
+void psx_spu_destroy(psx_spu_t*);
+
 psx_t* psx_create(void);
 int psx_init(psx_t*, const char*, const char*);
 int psx_load_expansion(psx_t*, const char*);

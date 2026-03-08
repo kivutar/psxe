@@ -139,30 +139,28 @@ int cue_parse_number(cue_t* cue) {
 }
 
 uint32_t cue_parse_msf(cue_t* cue) {
-    uint32_t frames = 0;
+    int mm, ss, ff;
 
     if (!isdigit(cue->c))
         return 0;
 
-    frames = cue_parse_number(cue) * 4500;
+    mm = cue_parse_number(cue);
 
     if (cue->c != ':')
         return 0;
 
     cue->c = fgetc(cue->file);
-
-    frames += cue_parse_number(cue) * 75;
+    ss = cue_parse_number(cue);
 
     if (cue->c != ':')
         return 0;
 
     cue->c = fgetc(cue->file);
-
-    frames += cue_parse_number(cue);
+    ff = cue_parse_number(cue);
 
     // 1 second = 75 frames (sectors)
     // 1 minute = 60 seconds = 4500 frames
-    return frames;
+    return (mm * 60 + ss) * 75 + ff;
 }
 
 void cue_parse_index(cue_t* cue) {
