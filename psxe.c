@@ -302,7 +302,7 @@ threadmain(int argc, char **argv)
 	int r;
 
 	log_set_quiet(0);
-	log_set_level(LOG_WARN);
+	log_set_level(LOG_FATAL);
 
 	disc = nil;
 	exp = nil;
